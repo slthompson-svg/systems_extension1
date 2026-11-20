@@ -1,0 +1,1345 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Systems of Equations Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Lexend:wght@400;500;600&display=swap">
+<style>
+/* Layout: a graph-paper workbook. Sticky tab bar; each lesson = tutorial column + practice column.
+   Color code used everywhere: blue = Equation 1, orange = Equation 2, violet = the solution point. */
+:root{
+  --paper:#F3F6FA; --panel:#FFFFFF; --ink:#16213A; --muted:#56617A; --rule:#D3DBE6; --grid:#E2E8F0; --axis:#7D879C;
+  --l1:#1D5FC6; --l1-soft:#E4EDFB; --l2:#C0531B; --l2-soft:#FBEBE0; --sol:#7A3CC3; --sol-soft:#F0E7FB;
+  --good:#18794A; --good-soft:#E1F3E9; --bad:#B3312E; --bad-soft:#FBE4E3;
+  --btn:#16213A; --btn-ink:#FFFFFF; --chip:#E8EDF4;
+  --f-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --f-body:"Lexend","Segoe UI",system-ui,sans-serif;
+  --r:12px;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --paper:#0E1420; --panel:#161F30; --ink:#E7ECF4; --muted:#9BA6BB; --rule:#2A3650; --grid:#1F2A3F; --axis:#7F8AA3;
+  --l1:#74A6FF; --l1-soft:#1B2A47; --l2:#FF9B63; --l2-soft:#3A2518; --sol:#C49CFF; --sol-soft:#2C2142;
+  --good:#5BCB8D; --good-soft:#15301F; --bad:#FF7C79; --bad-soft:#3A1A1A;
+  --btn:#E7ECF4; --btn-ink:#0E1420; --chip:#222D44; color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --paper:#0E1420; --panel:#161F30; --ink:#E7ECF4; --muted:#9BA6BB; --rule:#2A3650; --grid:#1F2A3F; --axis:#7F8AA3;
+  --l1:#74A6FF; --l1-soft:#1B2A47; --l2:#FF9B63; --l2-soft:#3A2518; --sol:#C49CFF; --sol-soft:#2C2142;
+  --good:#5BCB8D; --good-soft:#15301F; --bad:#FF7C79; --bad-soft:#3A1A1A;
+  --btn:#E7ECF4; --btn-ink:#0E1420; --chip:#222D44; color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+@media (max-width:480px){.xy input{width:6.5rem}.brand{font-size:.95rem}}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.6;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:28px 28px;background-attachment:fixed}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--panel)}
+h1,h2,h3,h4{font-family:var(--f-display);line-height:1.15;text-wrap:balance;margin:0}
+p{margin:0}
+a{color:var(--l1)}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--sol);outline-offset:2px;border-radius:6px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* header + tabs */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--panel);border-bottom:1px solid var(--rule)}
+.top-in{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;align-items:center;gap:16px;padding-block:8px}
+.brand{font-family:var(--f-display);font-weight:800;font-size:1.05rem;white-space:nowrap;display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--ink)}
+.brand svg{flex:none}
+.tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:thin;min-width:0;flex:1;padding-block:2px}
+.tabs a{white-space:nowrap;text-decoration:none;color:var(--muted);font-size:.86rem;font-weight:500;padding:6px 11px;border-radius:999px}
+.tabs a:hover{color:var(--ink);background:var(--chip)}
+.tabs a[aria-current="page"]{background:var(--ink);color:var(--paper)}
+
+main{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 64px}
+.view{display:grid;gap:28px}
+.eyebrow{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--muted)}
+.lead{font-size:1.08rem;color:var(--muted);max-width:62ch}
+.std{display:flex;flex-wrap:wrap;gap:6px}
+.std span{font-size:.76rem;font-weight:600;background:var(--chip);color:var(--ink);padding:3px 9px;border-radius:999px;font-variant-numeric:tabular-nums}
+
+.vhead{display:grid;gap:10px}
+.vhead h2{font-size:clamp(1.8rem,4vw,2.6rem);font-weight:800}
+
+/* hero */
+.hero{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:32px;align-items:center;background:var(--panel);border:1px solid var(--rule);border-radius:20px;padding:32px}
+.hero h1{font-size:clamp(2.2rem,6vw,3.8rem);font-weight:800;letter-spacing:-.02em}
+.hero h1 em{font-style:normal;color:var(--sol)}
+.hero .copy{display:grid;gap:14px;min-width:0}
+.hero-graph{max-width:360px;justify-self:center;width:100%}
+@media (max-width:760px){.hero{grid-template-columns:1fr;padding:22px}.hero-graph{max-width:300px}}
+
+.path{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;counter-reset:p}
+.path a{display:grid;gap:4px;text-decoration:none;color:var(--ink);background:var(--panel);border:1px solid var(--rule);border-radius:var(--r);padding:16px;counter-increment:p}
+.path a:hover{border-color:var(--ink)}
+.path a b{font-family:var(--f-display);font-size:1.12rem}
+.path a b::before{content:counter(p) ". ";color:var(--muted)}
+.path a span{font-size:.88rem;color:var(--muted)}
+.path a.extra b::before{content:"★ ";color:var(--sol)}
+
+.vocab{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.vocab div{background:var(--panel);border:1px solid var(--rule);border-radius:var(--r);padding:12px 14px;font-size:.92rem}
+.vocab dt{font-weight:600}
+.vocab dd{margin:0;color:var(--muted)}
+
+/* lesson layout */
+.lesson{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start}
+@media (max-width:960px){.lesson{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--rule);border-radius:16px;padding:22px;display:grid;gap:16px;min-width:0}
+.card h3{font-size:1.3rem}
+.card h4{font-size:1.02rem}
+.steps{margin:0;padding-left:1.4em;display:grid;gap:6px}
+.callout{border-radius:var(--r);padding:12px 14px;font-size:.95rem;display:grid;gap:4px}
+.callout.warn{background:var(--bad-soft)}
+.callout.tip{background:var(--sol-soft)}
+.callout.ok{background:var(--good-soft)}
+.callout b{font-weight:600}
+.callout ul{margin:0;padding-left:1.2em}
+
+/* math */
+.m{font-weight:500;font-variant-numeric:tabular-nums;white-space:nowrap}
+.e1{color:var(--l1)} .e2{color:var(--l2)} .s{color:var(--sol);font-weight:600}
+.sys{display:inline-grid;gap:2px;border-left:3px solid var(--axis);border-radius:10px 0 0 10px;padding:4px 0 4px 14px;font-weight:500;font-size:1.12rem;font-variant-numeric:tabular-nums}
+.sys .row{display:flex;align-items:baseline;gap:10px;white-space:nowrap}
+.sys .tag{font-size:.7rem;font-weight:600;border-radius:999px;padding:1px 7px;line-height:1.5}
+.sys .row.e1 .tag{background:var(--l1-soft);color:var(--l1)}
+.sys .row.e2 .tag{background:var(--l2-soft);color:var(--l2)}
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;font-size:.78em;line-height:1.05;margin:0 1px}
+.fr>span:first-child{border-bottom:1.5px solid currentColor;padding:0 2px}
+.wide{overflow-x:auto}
+
+/* graph */
+svg.g{display:block;width:100%;height:auto;max-width:100%}
+.g .gr{stroke:var(--grid);stroke-width:1}
+.g .ax{stroke:var(--axis);stroke-width:1.6}
+.g .tk{fill:var(--muted);font:500 10px var(--f-body)}
+.g .bg{fill:var(--panel)}
+.g .L1{stroke:var(--l1);stroke-width:3.2;fill:none;stroke-linecap:round}
+.g .L2{stroke:var(--l2);stroke-width:3.2;fill:none;stroke-linecap:round}
+.g .L2.over{stroke-dasharray:10 8;stroke-width:3.2}
+.g .dash{stroke-dasharray:8 6}
+.g .S1{fill:var(--l1);opacity:.16}
+.g .S2{fill:var(--l2);opacity:.16}
+.g .P{fill:var(--sol);stroke:var(--panel);stroke-width:2.5}
+.g .Pq{fill:var(--ink);stroke:var(--panel);stroke-width:2.5}
+.g .pl{fill:var(--sol);font:600 13px var(--f-body);paint-order:stroke;stroke:var(--panel);stroke-width:4px}
+.g .yi1{fill:var(--l1)} .g .yi2{fill:var(--l2)}
+.g .draw{stroke-dasharray:1200;stroke-dashoffset:1200;animation:draw 1.4s ease-out forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.g .pop{transform-box:fill-box;transform-origin:center;animation:pop .5s ease-out both}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+.gframe{border:1px solid var(--rule);border-radius:var(--r);overflow:hidden;background:var(--panel);max-width:420px}
+
+/* walkthrough player */
+.wt{border:1px solid var(--rule);border-radius:var(--r);overflow:hidden}
+.wt-bar{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--chip);flex-wrap:wrap}
+.wt-bar .ttl{font-weight:600;font-size:.9rem;margin-right:auto}
+.wt-bar button{background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:4px 10px;font-size:.85rem;color:var(--ink)}
+.wt-bar button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.wt-prog{height:4px;background:var(--rule)} .wt-prog i{display:block;height:100%;background:var(--sol);width:0;transition:width .4s}
+.wt-body{padding:14px;display:grid;gap:12px}
+.wt-steps{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.wt-steps li{padding:8px 12px;border-radius:10px;opacity:.38;transition:opacity .3s,background .3s}
+.wt-steps li.seen{opacity:1}
+.wt-steps li.cur{opacity:1;background:var(--sol-soft)}
+.wt-steps .say{display:block;font-size:.88rem;color:var(--muted)}
+.wt .gframe{max-width:320px}
+
+/* practice */
+.practice{background:var(--panel);border:2px solid var(--ink);border-radius:16px;padding:20px;display:grid;gap:14px;min-width:0}
+.pr-head{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.pr-head h3{font-size:1.3rem}
+.levels{display:flex;border:1px solid var(--rule);border-radius:999px;overflow:hidden}
+.levels button{border:0;background:transparent;color:var(--muted);padding:5px 12px;font-size:.82rem;font-weight:500}
+.levels button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.score{font-size:.85rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.pr-body{display:grid;gap:14px}
+.pr-prompt{font-size:1.02rem}
+.pr-prompt .story{background:var(--chip);border-radius:10px;padding:12px 14px;display:block;margin-top:4px}
+.xy{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+.xy label{display:grid;gap:4px;font-weight:600;font-size:.9rem}
+.xy label small{font-weight:400;color:var(--muted)}
+.xy input{width:9.5rem;font:500 1.15rem var(--f-body);padding:8px 10px;border:2px solid var(--rule);border-radius:10px;background:var(--paper);color:var(--ink);font-variant-numeric:tabular-nums}
+.xy input:focus{border-color:var(--sol);outline:none}
+.xy .pair{font-size:1.3rem;font-weight:500;color:var(--muted);padding-bottom:8px}
+.choices{display:flex;flex-wrap:wrap;gap:8px}
+.choices button{border:2px solid var(--rule);background:var(--paper);color:var(--ink);border-radius:10px;padding:9px 14px;font-weight:500}
+.choices button:hover{border-color:var(--ink)}
+.choices button.right{border-color:var(--good);background:var(--good-soft)}
+.choices button.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.acts{display:flex;flex-wrap:wrap;gap:8px}
+.acts button{border:1.5px solid var(--ink);background:transparent;color:var(--ink);border-radius:10px;padding:7px 13px;font-weight:500;font-size:.92rem}
+.acts button.pri{background:var(--btn);color:var(--btn-ink)}
+.acts button:disabled{opacity:.4;cursor:default}
+.fb{border-radius:10px;padding:10px 14px;font-size:.95rem}
+.fb:empty{display:none}
+.fb.good{background:var(--good-soft);color:var(--good)}
+.fb.bad{background:var(--bad-soft);color:var(--bad)}
+.fb.info{background:var(--chip)}
+.hints{margin:0;padding:0;list-style:none;display:grid;gap:8px}
+.hints li{background:var(--sol-soft);border-radius:10px;padding:10px 14px;font-size:.95rem}
+.hints li b{color:var(--sol)}
+.sol{display:grid;gap:10px;border-top:1px dashed var(--rule);padding-top:12px}
+.sol ol{margin:0;padding-left:1.4em;display:grid;gap:6px}
+.pr-graph .gframe{max-width:380px}
+.summary{display:grid;gap:10px}
+.summary .big{font-family:var(--f-display);font-size:2.4rem;font-weight:800}
+
+/* explorer */
+.explore{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:760px){.explore{grid-template-columns:1fr}}
+.sliders{display:grid;gap:10px}
+.sl{display:grid;grid-template-columns:5.5rem 1fr 3rem;gap:8px;align-items:center;font-size:.9rem}
+.sl input{width:100%}
+.sl.e1 input{accent-color:var(--l1)} .sl.e2 input{accent-color:var(--l2)}
+.sl output{font-variant-numeric:tabular-nums;text-align:right;font-weight:600}
+.readout{border-radius:10px;padding:12px 14px;background:var(--sol-soft);font-size:.95rem}
+.test{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
+.test input{width:5rem;font:500 1rem var(--f-body);padding:6px 8px;border:2px solid var(--rule);border-radius:8px;background:var(--paper);color:var(--ink)}
+
+/* videos + tables */
+.vids{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.vid{background:var(--panel);border:1px solid var(--rule);border-radius:var(--r);padding:16px;display:grid;gap:6px;text-decoration:none;color:var(--ink)}
+.vid:hover{border-color:var(--ink)}
+.vid .src{font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.vid b{font-family:var(--f-display);font-size:1.08rem}
+.vid span{font-size:.88rem;color:var(--muted)}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+td code{font-family:var(--f-body);font-weight:600;white-space:nowrap}
+.cols2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
+.method{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.method div{border:1px solid var(--rule);border-radius:var(--r);padding:14px;display:grid;gap:4px;font-size:.92rem}
+.method b{font-family:var(--f-display);font-size:1.05rem}
+footer{color:var(--muted);font-size:.82rem;text-align:center;padding-top:20px}
+@media (prefers-reduced-motion:reduce){.g .draw,.g .pop{animation:none;stroke-dashoffset:0}.wt-prog i{transition:none}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <a class="brand" href="#start"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><line x1="2" y1="19" x2="20" y2="3" stroke="var(--l1)" stroke-width="3" stroke-linecap="round"/><line x1="2" y1="5" x2="20" y2="17" stroke="var(--l2)" stroke-width="3" stroke-linecap="round"/><circle cx="11" cy="11" r="3.6" fill="var(--sol)"/></svg>Systems Lab</a>
+    <nav class="tabs" aria-label="Sections">
+      <a href="#start">Start</a>
+      <a href="#solution">What's a solution?</a>
+      <a href="#graphing">Graphing</a>
+      <a href="#substitution">Substitution</a>
+      <a href="#elimination">Elimination</a>
+      <a href="#special">Special cases</a>
+      <a href="#context">In context</a>
+      <a href="#algebra">Algebra I preview</a>
+      <a href="#review">Mixed review</a>
+      <a href="#videos">Videos</a>
+      <a href="#teacher">Teacher notes</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<!-- START -->
+<section class="view" id="v-start">
+  <div class="hero">
+    <div class="copy">
+      <span class="eyebrow">8th Grade Math · Georgia Standards · 8.FGR.7</span>
+      <h1>Two equations. <em>One point</em> that makes both true.</h1>
+      <p class="lead">Learn to solve systems of linear equations by graphing, substitution, and elimination. Each lesson has a short tutorial, a step-by-step walkthrough you can play, and practice with hints and instant feedback.</p>
+      <div class="std"><span>8.FGR.7.1</span><span>8.FGR.7.2</span><span>8.FGR.7.3</span><span>8.FGR.7.4</span><span>8.FGR.7.5</span><span>8.PAR.3.2</span><span>Algebra I bridge</span></div>
+    </div>
+    <div class="hero-graph gframe" id="hero-graph"></div>
+  </div>
+
+  <div class="vhead"><h2 style="font-size:1.6rem">Suggested path</h2><p class="lead">Go in order the first time. Come back to any section to practice more.</p></div>
+  <nav class="path" aria-label="Lessons in order">
+    <a href="#solution"><b>What's a solution?</b><span>Use the line explorer to see why the crossing point solves both equations.</span></a>
+    <a href="#graphing"><b>Solve by graphing</b><span>Graph both lines and read the intersection.</span></a>
+    <a href="#substitution"><b>Solve by substitution</b><span>Replace one variable with an expression.</span></a>
+    <a href="#elimination"><b>Solve by elimination</b><span>Add or subtract equations to cancel a variable.</span></a>
+    <a href="#special"><b>One, none, or infinitely many</b><span>Parallel lines, same lines, and crossing lines.</span></a>
+    <a href="#context"><b>Systems in context</b><span>Tickets, gyms, gardens, and break-even points.</span></a>
+    <a href="#review"><b>Mixed review</b><span>10 questions from every section, with a score.</span></a>
+    <a class="extra" href="#algebra"><b>Algebra I preview</b><span>Inequalities, parallel and perpendicular lines, harder elimination.</span></a>
+  </nav>
+
+  <div class="vhead"><h2 style="font-size:1.6rem">Words to know</h2></div>
+  <dl class="vocab">
+    <div><dt>System of equations</dt><dd>Two or more equations that use the same variables.</dd></div>
+    <div><dt>Solution of a system</dt><dd>An ordered pair (x, y) that makes <em>every</em> equation true.</dd></div>
+    <div><dt>Point of intersection</dt><dd>The point where two lines cross. It is the solution.</dd></div>
+    <div><dt>Slope-intercept form</dt><dd><span class="m">y = mx + b</span>. m is the slope and b is the y-intercept.</dd></div>
+    <div><dt>Standard form</dt><dd><span class="m">Ax + By = C</span>, with both variables on one side.</dd></div>
+    <div><dt>Coefficient</dt><dd>The number multiplied by a variable. In 4x, the coefficient is 4.</dd></div>
+    <div><dt>Substitution</dt><dd>Replacing a variable with an equal expression.</dd></div>
+    <div><dt>Elimination</dt><dd>Adding or subtracting equations so one variable cancels out.</dd></div>
+    <div><dt>Parallel lines</dt><dd>Same slope, different y-intercepts. They never cross: no solution.</dd></div>
+    <div><dt>Coincident lines</dt><dd>The same line written two ways: infinitely many solutions.</dd></div>
+  </dl>
+</section>
+
+<!-- SOLUTION -->
+<section class="view" id="v-solution" hidden>
+  <div class="vhead">
+    <span class="eyebrow">Lesson 1 · 8.FGR.7.2</span>
+    <h2>What is a solution to a system?</h2>
+    <p class="lead">Every point on a line makes that line's equation true. The point where two lines cross is on <em>both</em> lines, so it makes <em>both</em> equations true. That point is the solution.</p>
+  </div>
+  <div class="card">
+    <h3>Line explorer</h3>
+    <p>Move the sliders to change each line. Watch the violet point. Then test your own point below.</p>
+    <div class="explore">
+      <div class="sliders">
+        <div class="sl e1"><label for="ex-m1">Slope m₁</label><input id="ex-m1" type="range" min="-5" max="5" step="0.5" value="2"><output id="ex-m1o"></output></div>
+        <div class="sl e1"><label for="ex-b1">Intercept b₁</label><input id="ex-b1" type="range" min="-8" max="8" step="1" value="-1"><output id="ex-b1o"></output></div>
+        <div class="sl e2"><label for="ex-m2">Slope m₂</label><input id="ex-m2" type="range" min="-5" max="5" step="0.5" value="-1"><output id="ex-m2o"></output></div>
+        <div class="sl e2"><label for="ex-b2">Intercept b₂</label><input id="ex-b2" type="range" min="-8" max="8" step="1" value="5"><output id="ex-b2o"></output></div>
+        <div id="ex-sys"></div>
+        <div class="readout" id="ex-read" aria-live="polite"></div>
+        <h4>Test a point</h4>
+        <div class="test">
+          <label>x<br><input id="ex-px" inputmode="decimal" value="1"></label>
+          <label>y<br><input id="ex-py" inputmode="decimal" value="1"></label>
+          <div class="acts"><button type="button" class="pri" id="ex-test">Test point</button></div>
+        </div>
+        <div id="ex-testout" class="fb info" aria-live="polite"></div>
+      </div>
+      <div class="gframe" id="ex-graph"></div>
+    </div>
+  </div>
+  <div class="lesson">
+    <div class="card">
+      <h3>How to check a solution</h3>
+      <ol class="steps">
+        <li>Substitute the x-value and the y-value into Equation 1.</li>
+        <li>Simplify. Is the equation true?</li>
+        <li>Do the same thing for Equation 2.</li>
+        <li>If <b>both</b> are true, the point is a solution. If even one is false, it is not.</li>
+      </ol>
+      <div class="callout tip"><b>Example: Is (2, 3) a solution?</b>
+        <div class="sys"><div class="row e1"><span class="tag">1</span>y = 2x − 1</div><div class="row e2"><span class="tag">2</span>y = −x + 5</div></div>
+        <span class="m e1">3 = 2(2) − 1 → 3 = 3 ✓</span>
+        <span class="m e2">3 = −(2) + 5 → 3 = 3 ✓</span>
+        <span>Both are true, so <span class="s">(2, 3)</span> is the solution.</span>
+      </div>
+      <div class="callout warn"><b>Watch out</b>
+        <ul><li>An ordered pair is always (x, y). Don't switch them.</li><li>A point that works in only one equation is <b>not</b> a solution. It is only on one line.</li></ul>
+      </div>
+    </div>
+    <div class="practice" data-gen="check"></div>
+  </div>
+</section>
+
+<!-- GRAPHING -->
+<section class="view" id="v-graphing" hidden>
+  <div class="vhead">
+    <span class="eyebrow">Lesson 2 · 8.FGR.7.3</span>
+    <h2>Solve by graphing</h2>
+    <p class="lead">Graph both lines on the same coordinate plane. The point where they cross is the solution. Graphing works best when the answer has whole-number coordinates.</p>
+  </div>
+  <div class="lesson">
+    <div class="card">
+      <h3>Steps</h3>
+      <ol class="steps">
+        <li>Write each equation in slope-intercept form, <span class="m">y = mx + b</span>.</li>
+        <li>Plot the y-intercept <b>b</b> on the y-axis.</li>
+        <li>Use the slope <b>m = rise ÷ run</b> to find more points. Draw the line.</li>
+        <li>Repeat for the second line.</li>
+        <li>Find the point where the lines cross. Write it as (x, y).</li>
+        <li>Check the point in both equations.</li>
+      </ol>
+      <div class="wt" data-wt="graphing"></div>
+      <div class="callout warn"><b>Watch out</b>
+        <ul><li>A negative slope goes <b>down</b> as you move right.</li><li>Slope ½ means up 1, right 2. Not up 2, right 1.</li><li>If the crossing point is between grid lines, graphing only gives an estimate. Use substitution or elimination to get the exact answer.</li></ul>
+      </div>
+    </div>
+    <div class="practice" data-gen="graphing" data-levels="Level 1: whole slopes|Level 2: fraction slopes|Level 3: standard form"></div>
+  </div>
+</section>
+
+<!-- SUBSTITUTION -->
+<section class="view" id="v-substitution" hidden>
+  <div class="vhead">
+    <span class="eyebrow">Lesson 3 · 8.FGR.7.4</span>
+    <h2>Solve by substitution</h2>
+    <p class="lead">If one equation tells you what a variable equals, put that expression into the other equation. Then you have one equation with one variable, which you already know how to solve.</p>
+  </div>
+  <div class="lesson">
+    <div class="card">
+      <h3>Steps</h3>
+      <ol class="steps">
+        <li>Get one variable alone in one equation (it may already be alone).</li>
+        <li>Substitute that expression into the <b>other</b> equation. Use parentheses.</li>
+        <li>Solve the new equation. It has only one variable.</li>
+        <li>Put that value back into an equation to find the other variable.</li>
+        <li>Write the solution (x, y) and check it in both equations.</li>
+      </ol>
+      <div class="wt" data-wt="substitution"></div>
+      <div class="callout tip"><b>Best time to use substitution</b>A variable is already alone, like <span class="m">y = 3x − 2</span> or <span class="m">x = 4y + 1</span>, or it has a coefficient of 1.</div>
+      <div class="callout warn"><b>Watch out</b>
+        <ul><li>Use parentheses when you substitute: 2(3x − 2), not 2 · 3x − 2.</li><li>Distribute to <b>every</b> term inside the parentheses.</li><li>Don't stop after finding one variable. A solution needs both x and y.</li></ul>
+      </div>
+    </div>
+    <div class="practice" data-gen="substitution" data-levels="Level 1: y = …|Level 2: x = … or y = …|Level 3: solve first"></div>
+  </div>
+</section>
+
+<!-- ELIMINATION -->
+<section class="view" id="v-elimination" hidden>
+  <div class="vhead">
+    <span class="eyebrow">Lesson 4 · 8.FGR.7.4</span>
+    <h2>Solve by elimination</h2>
+    <p class="lead">Add or subtract the equations so one variable cancels out. This works because adding equal amounts to both sides of an equation keeps it balanced.</p>
+  </div>
+  <div class="lesson">
+    <div class="card">
+      <h3>Steps</h3>
+      <ol class="steps">
+        <li>Line up both equations in standard form: x under x, y under y, = under =.</li>
+        <li>Look for opposite coefficients, like <span class="m">+2y</span> and <span class="m">−2y</span>. If there are none, multiply one equation (or both) to make them.</li>
+        <li>Add the equations. One variable cancels.</li>
+        <li>Solve for the variable that is left.</li>
+        <li>Substitute it back into an original equation to find the other variable.</li>
+        <li>Check in both equations.</li>
+      </ol>
+      <div class="wt" data-wt="elimination"></div>
+      <div class="wt" data-wt="elimination2"></div>
+      <div class="callout warn"><b>Watch out</b>
+        <ul><li>When you multiply an equation, multiply <b>every</b> term, including the number after the equals sign.</li><li>If the coefficients are the same (like 3y and 3y), subtract, or multiply one equation by −1 first.</li></ul>
+      </div>
+    </div>
+    <div class="practice" data-gen="elimination" data-levels="Level 1: add or subtract|Level 2: multiply one|Level 3: multiply both"></div>
+  </div>
+</section>
+
+<!-- SPECIAL -->
+<section class="view" id="v-special" hidden>
+  <div class="vhead">
+    <span class="eyebrow">Lesson 5 · 8.FGR.7.2, 8.FGR.7.4, 8.PAR.3.2</span>
+    <h2>One solution, no solution, or infinitely many</h2>
+    <p class="lead">Two lines can cross once, never cross, or lie on top of each other. Compare slopes and y-intercepts to know which one before you solve.</p>
+  </div>
+  <div class="card">
+    <div class="wide">
+    <table>
+      <thead><tr><th>Slopes</th><th>Y-intercepts</th><th>Graph</th><th>Number of solutions</th><th>What algebra shows</th></tr></thead>
+      <tbody>
+        <tr><td>Different</td><td>Any</td><td>Lines cross once</td><td><b>One solution</b></td><td>x = a number, y = a number</td></tr>
+        <tr><td>Same</td><td>Different</td><td>Parallel lines</td><td><b>No solution</b></td><td>Variables cancel, false statement like 3 = −1</td></tr>
+        <tr><td>Same</td><td>Same</td><td>Same line</td><td><b>Infinitely many</b></td><td>Variables cancel, true statement like 0 = 0</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="cols2" id="special-graphs"></div>
+  </div>
+  <div class="lesson">
+    <div class="card">
+      <h3>Two examples</h3>
+      <div class="callout tip"><b>No solution</b>
+        <div class="sys"><div class="row e1"><span class="tag">1</span>y = 2x + 3</div><div class="row e2"><span class="tag">2</span>y = 2x − 1</div></div>
+        <span>Both slopes are 2. The intercepts are 3 and −1. The lines are parallel.</span>
+        <span class="m">Substitute: 2x + 3 = 2x − 1 → 3 = −1</span><span>That is false, so there is <b>no solution</b>.</span>
+      </div>
+      <div class="callout tip"><b>Infinitely many solutions</b>
+        <div class="sys"><div class="row e1"><span class="tag">1</span>y = 2x + 3</div><div class="row e2"><span class="tag">2</span>4x − 2y = −6</div></div>
+        <span>Solve Equation 2 for y: −2y = −4x − 6, so y = 2x + 3. It is the same line.</span>
+        <span class="m">Substitute: 4x − 2(2x + 3) = −6 → −6 = −6</span><span>That is always true, so there are <b>infinitely many solutions</b>.</span>
+      </div>
+      <div class="callout warn"><b>Watch out</b>
+        <ul><li>"No solution" and "the solution is (0, 0)" are different answers.</li><li>Equations can look different and still be the same line. Always rewrite in y = mx + b to compare.</li></ul>
+      </div>
+    </div>
+    <div class="practice" data-gen="special" data-levels="Level 1: mostly y = mx + b|Level 2: standard form"></div>
+  </div>
+</section>
+
+<!-- CONTEXT -->
+<section class="view" id="v-context" hidden>
+  <div class="vhead">
+    <span class="eyebrow">Lesson 6 · 8.FGR.7.1</span>
+    <h2>Systems in context</h2>
+    <p class="lead">Many real problems have two unknowns and two facts. Each fact becomes an equation. Solve the system, then explain what the numbers mean.</p>
+  </div>
+  <div class="lesson">
+    <div class="card">
+      <h3>Steps</h3>
+      <ol class="steps">
+        <li><b>Define</b> the variables. Write "Let x = …" and "Let y = …".</li>
+        <li><b>Write</b> one equation for each fact. Look for totals (how many) and values (how much money).</li>
+        <li><b>Solve</b> with the method that fits best.</li>
+        <li><b>Interpret.</b> Answer the question in a full sentence with units.</li>
+        <li><b>Check</b> that the answer makes sense. Can you sell −3 tickets?</li>
+      </ol>
+      <div class="wt" data-wt="context"></div>
+      <div class="method">
+        <div><b>"Total" problems</b>Tickets, coins, snacks: one equation counts items (x + y = total), one adds up money.</div>
+        <div><b>"When are they equal?"</b>Gym plans, savings: both are y = rate · x + start. Set them equal.</div>
+        <div><b>Geometry</b>Perimeter 2L + 2W, plus a sentence like "the length is 5 more than the width."</div>
+      </div>
+    </div>
+    <div class="practice" data-gen="context" data-levels="Level 1: equations given|Level 2: write your own"></div>
+  </div>
+</section>
+
+<!-- ALGEBRA -->
+<section class="view" id="v-algebra" hidden>
+  <div class="vhead">
+    <span class="eyebrow">Extension · 8.FGR.7.5 and Algebra I</span>
+    <h2>Algebra I preview</h2>
+    <p class="lead">These ideas come next in high school algebra. They use the same tools you just learned.</p>
+  </div>
+  <div class="lesson">
+    <div class="card">
+      <h3>Parallel and perpendicular lines</h3>
+      <p>Compare slopes. This is part of 8.FGR.7.5.</p>
+      <ul class="steps" style="list-style:disc">
+        <li><b>Parallel:</b> same slope. Example: y = 3x + 1 and y = 3x − 4.</li>
+        <li><b>Perpendicular:</b> slopes are negative reciprocals. Their product is −1. Example: slope <span class="m">2</span> and slope <span class="m">−<span class="fr"><span>1</span><span class="sr">/</span><span>2</span></span></span>.</li>
+        <li><b>Neither:</b> any other pair of slopes.</li>
+      </ul>
+      <div class="callout tip"><b>Negative reciprocal</b>Flip the fraction and change the sign. <span class="m">⅔ → −<span class="fr"><span>3</span><span class="sr">/</span><span>2</span></span></span>. <span class="m">−4 → <span class="fr"><span>1</span><span class="sr">/</span><span>4</span></span></span>.</div>
+    </div>
+    <div class="practice" data-gen="parperp" data-levels="Level 1: y = mx + b|Level 2: standard form"></div>
+  </div>
+  <div class="lesson">
+    <div class="card">
+      <h3>Systems of linear inequalities</h3>
+      <p>An inequality like <span class="m">y &gt; x − 2</span> is true for a whole region, not just a line. The solution of a system of inequalities is where the shaded regions <b>overlap</b>.</p>
+      <ol class="steps">
+        <li>Graph each boundary line. Use a <b>dashed</b> line for &lt; or &gt; and a <b>solid</b> line for ≤ or ≥.</li>
+        <li>Shade above the line for y &gt; or y ≥. Shade below for y &lt; or y ≤.</li>
+        <li>The overlap is the solution. Test a point to check.</li>
+      </ol>
+      <div id="ineq-example"></div>
+      <div class="callout tip"><b>Test (0, 0)</b><span class="m e1">0 &gt; 0 − 2 → 0 &gt; −2 ✓</span><span class="m e2">0 ≤ −2(0) + 4 → 0 ≤ 4 ✓</span><span>(0, 0) is in the overlap, so it is a solution.</span></div>
+    </div>
+    <div class="practice" data-gen="ineq" data-levels="Level 1: with graph|Level 2: no graph"></div>
+  </div>
+  <div class="card">
+    <h3>Choosing the best method</h3>
+    <div class="method">
+      <div><b>Graphing</b>Good for seeing the answer and for estimating. Use it when both equations are in y = mx + b form and the answer is likely a whole-number point.</div>
+      <div><b>Substitution</b>Good when a variable is already alone or has a coefficient of 1 or −1.</div>
+      <div><b>Elimination</b>Good when both equations are in standard form, especially when coefficients are opposites or easy to make opposite.</div>
+    </div>
+    <p>Algebra I problems often need elimination with <b>both</b> equations multiplied. Try Level 3 on the <a href="#elimination">Elimination</a> page, and the break-even problems on <a href="#context">In context</a>.</p>
+  </div>
+</section>
+
+<!-- REVIEW -->
+<section class="view" id="v-review" hidden>
+  <div class="vhead">
+    <span class="eyebrow">All standards</span>
+    <h2>Mixed review</h2>
+    <p class="lead">Ten questions from every lesson. Hints are allowed, but a question only counts as correct if you get it on the first try without showing the solution.</p>
+  </div>
+  <div class="practice" data-gen="mixed" data-quiz="10" style="max-width:760px"></div>
+</section>
+
+<!-- VIDEOS -->
+<section class="view" id="v-videos" hidden>
+  <div class="vhead">
+    <span class="eyebrow">Watch and learn</span>
+    <h2>Videos</h2>
+    <p class="lead">Each lesson also has a walkthrough player you can watch right here, with read-aloud. These links open short video lessons on Khan Academy and YouTube in a new tab.</p>
+  </div>
+  <div class="vids" id="vid-list"></div>
+</section>
+
+<!-- TEACHER -->
+<section class="view" id="v-teacher" hidden>
+  <div class="vhead">
+    <span class="eyebrow">For teachers</span>
+    <h2>Teacher notes</h2>
+    <p class="lead">Standards alignment and suggestions for small-group and co-taught classes.</p>
+  </div>
+  <div class="card">
+    <h3>Standards alignment</h3>
+    <div class="wide">
+    <table>
+      <thead><tr><th>Georgia standard (2023)</th><th>Expectation</th><th>Legacy GSE</th><th>Where on this site</th></tr></thead>
+      <tbody>
+        <tr><td><code>8.FGR.7.1</code></td><td>Interpret and solve problems that lead to two linear equations in two variables.</td><td><code>MGSE8.EE.8c</code></td><td>In context; Mixed review</td></tr>
+        <tr><td><code>8.FGR.7.2</code></td><td>Explain that the solution of a system is the intersection point, because it satisfies both equations.</td><td><code>MGSE8.EE.8a</code></td><td>What's a solution?; Special cases</td></tr>
+        <tr><td><code>8.FGR.7.3</code></td><td>Approximate solutions by graphing; solve simple cases by inspection.</td><td><code>MGSE8.EE.8a/b</code></td><td>Graphing</td></tr>
+        <tr><td><code>8.FGR.7.4</code></td><td>Analyze and solve systems algebraically to find exact solutions.</td><td><code>MGSE8.EE.8b</code></td><td>Substitution; Elimination; Special cases</td></tr>
+        <tr><td><code>8.FGR.7.5</code></td><td>Create and compare equations of parallel, perpendicular, or neither lines.</td><td>—</td><td>Algebra I preview</td></tr>
+        <tr><td><code>8.PAR.3.2</code></td><td>One-variable equations with one, infinitely many, or no solutions.</td><td><code>MGSE8.EE.7a</code></td><td>Special cases (the false or true statement after the variables cancel)</td></tr>
+        <tr><td>Algebra I bridge</td><td>Elimination with both equations scaled; systems of linear inequalities; modeling constraints (break-even).</td><td><code>A.REI.5, A.REI.6, A.REI.12, A.CED.3</code></td><td>Elimination Level 3; Algebra I preview; In context Level 2</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+  <div class="cols2">
+    <div class="card">
+      <h3>Small group</h3>
+      <ul class="steps" style="list-style:disc">
+        <li>Start every lesson with the walkthrough player. Turn on <b>Narrate</b> for read-aloud, and pause on each step to ask "what comes next?"</li>
+        <li>Keep students on Level 1 until they get three in a row on the first try. The score line tracks this on each device.</li>
+        <li>The <b>Read aloud</b> button in practice reads the problem, which helps with word problems.</li>
+        <li>The color code is consistent: blue is always Equation 1, orange is Equation 2, violet is the solution. Ask students to use matching colored pencils on paper.</li>
+        <li>Feedback names the mistake: switched x and y, or a point that is only on one line.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Co-taught classes</h3>
+      <ul class="steps" style="list-style:disc">
+        <li><b>Stations:</b> one teacher runs Graphing with the line explorer on the board, while students rotate through Substitution and Elimination practice.</li>
+        <li><b>Midterm review:</b> assign Mixed review. Each student reports their score and the lessons the summary tells them to revisit.</li>
+        <li><b>Extension:</b> students who finish early move to Algebra I preview and Elimination Level 3.</li>
+        <li>Problems are randomly generated, so students sitting together get different numbers.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="callout tip"><b>Note</b>Practice scores are saved only in each student's own browser. They are not sent to the teacher. Have students show the score line or the Mixed review summary screen.</div>
+</section>
+
+<footer>Systems of Equations Lab · Grade 8 · Georgia's K–12 Mathematics Standards</footer>
+</main>
+
+<script>
+(()=>{
+"use strict";
+const $=(s,el=document)=>el.querySelector(s);
+const $$=(s,el=document)=>[...el.querySelectorAll(s)];
+const MN="−";
+const num=n=>n<0?MN+Math.abs(n):String(n);
+const pnum=n=>n<0?"("+num(n)+")":String(n);
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a||1};
+const lcm=(a,b)=>Math.abs(a*b)/gcd(a,b);
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const nz=(a,b)=>{let v;do{v=ri(a,b)}while(v===0);return v};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+
+/* ---------- formatting ---------- */
+function frac(n,d){
+  if(d<0){n=-n;d=-d}
+  const g=gcd(n,d);n/=g;d/=g;
+  if(d===1)return num(n);
+  return (n<0?MN:"")+`<span class="fr"><span>${Math.abs(n)}</span><span class="sr">/</span><span>${d}</span></span>`;
+}
+function coefHTML(n,d){ // coefficient in front of a variable
+  if(d<0){n=-n;d=-d}
+  const g=gcd(n,d);n/=g;d/=g;
+  if(d===1){return n===1?"":n===-1?MN:num(n)}
+  return frac(n,d);
+}
+function term(c,v,first){
+  if(c===0)return "";
+  const a=Math.abs(c),body=(a===1?"":a)+v;
+  if(first)return (c<0?MN:"")+body;
+  return (c<0?" "+MN+" ":" + ")+body;
+}
+const konst=c=>c===0?"":(c<0?" "+MN+" ":" + ")+Math.abs(c);
+function fmtStd(a,b,c){let s=term(a,"x",true);s+=term(b,"y",s==="");return (s||"0")+" = "+num(c)}
+function fmtSI(n,d,k,lhs="y",v="x"){
+  if(d<0){n=-n;d=-d}
+  let s=lhs+" = ";
+  if(n===0)return s+num(k);
+  s+=coefHTML(n,d)+v;
+  return s+konst(k);
+}
+function siToStd(n,d,k){
+  if(d<0){n=-n;d=-d}
+  const g=gcd(n,d);n/=g;d/=g;
+  let a=-n,b=d,c=d*k;
+  if(a<0||(a===0&&b<0)){a=-a;b=-b;c=-c}
+  return {a,b,c};
+}
+const sat=(e,x,y)=>Math.abs(e.a*x+e.b*y-e.c)<1e-9;
+function chkStd(e,x,y){
+  const p=e.a*x,q=e.b*y;
+  const cf=c=>Math.abs(c)===1?"":String(Math.abs(c));
+  let lhs="",mid="";
+  if(e.a!==0){lhs=(e.a<0?MN:"")+cf(e.a)+"("+num(x)+")";mid=num(p)}
+  if(e.b!==0){
+    const bt=cf(e.b)+"("+num(y)+")";
+    lhs+=lhs?(e.b<0?" "+MN+" ":" + ")+bt:(e.b<0?MN:"")+bt;
+    mid+=mid?" + "+pnum(q):num(q);
+  }
+  return `${lhs} = ${mid} = ${num(p+q)} ✓`;
+}
+function chkSI(n,d,k,x,y,lhs="y"){
+  const prod=n*x/d;
+  return `${num(y)} = ${coefHTML(n,d)===""?"":coefHTML(n,d)}(${num(x)})${konst(k)} = ${num(prod)}${konst(k)} = ${num(prod+k)} ✓`;
+}
+// Equation objects
+function SI(n,d,k){return {kind:"si",n,d,k,std:siToStd(n,d,k),show:fmtSI(n,d,k),check:(x,y)=>chkSI(n,d,k,x,y)}}
+function ST(a,b,c){return {kind:"st",std:{a,b,c},show:fmtStd(a,b,c),check:(x,y)=>chkStd({a,b,c},x,y)}}
+function sysHTML(e1,e2){return `<div class="sys"><div class="row e1"><span class="tag">1</span><span>${e1}</span></div><div class="row e2"><span class="tag">2</span><span>${e2}</span></div></div>`}
+const M=s=>`<span class="m">${s}</span>`;
+
+/* ---------- graph ---------- */
+let gid=0;
+function graph(o){
+  const R=o.R||10,S=400,pad=20,U=(S/2-pad)/R,C=S/2;
+  const X=x=>C+x*U,Y=y=>C-y*U;
+  const id="c"+(++gid);
+  let s=`<svg class="g" viewBox="0 0 ${S} ${S}" role="img" aria-label="${o.label||"Coordinate graph"}"><defs><clipPath id="${id}"><rect x="${X(-R)}" y="${Y(R)}" width="${2*R*U}" height="${2*R*U}"/></clipPath></defs>`;
+  s+=`<rect class="bg" x="0" y="0" width="${S}" height="${S}"/>`;
+  for(let i=-R;i<=R;i++){s+=`<line class="gr" x1="${X(i)}" y1="${Y(-R)}" x2="${X(i)}" y2="${Y(R)}"/><line class="gr" x1="${X(-R)}" y1="${Y(i)}" x2="${X(R)}" y2="${Y(i)}"/>`}
+  // shading
+  (o.shades||[]).forEach(sh=>{
+    const x1=-R-1,x2=R+1,y1=sh.m*x1+sh.k,y2=sh.m*x2+sh.k,far=sh.above?R+60:-R-60;
+    s+=`<polygon clip-path="url(#${id})" class="${sh.cls}" points="${X(x1)},${Y(y1)} ${X(x2)},${Y(y2)} ${X(x2)},${Y(far)} ${X(x1)},${Y(far)}"/>`;
+  });
+  s+=`<line class="ax" x1="${X(-R)}" y1="${Y(0)}" x2="${X(R)}" y2="${Y(0)}"/><line class="ax" x1="${X(0)}" y1="${Y(-R)}" x2="${X(0)}" y2="${Y(R)}"/>`;
+  const step=R>6?2:1;
+  for(let i=-R;i<=R;i+=step){if(i===0)continue;
+    s+=`<text class="tk" x="${X(i)}" y="${Y(0)+13}" text-anchor="middle">${num(i)}</text><text class="tk" x="${X(0)-5}" y="${Y(i)+3.5}" text-anchor="end">${num(i)}</text>`}
+  s+=`<text class="tk" x="${X(R)-2}" y="${Y(0)-6}" text-anchor="end" font-style="italic">x</text><text class="tk" x="${X(0)+6}" y="${Y(R)+10}" font-style="italic">y</text>`;
+  (o.lines||[]).forEach(l=>{
+    const e=l.e; let x1,y1,x2,y2;
+    if(e.b!==0){x1=-R-1;x2=R+1;y1=(e.c-e.a*x1)/e.b;y2=(e.c-e.a*x2)/e.b}
+    else{x1=x2=e.c/e.a;y1=-R-1;y2=R+1}
+    s+=`<line clip-path="url(#${id})" class="${l.cls}" x1="${X(x1)}" y1="${Y(y1)}" x2="${X(x2)}" y2="${Y(y2)}"${l.delay?` style="animation-delay:${l.delay}s"`:""}/>`;
+  });
+  (o.points||[]).forEach(p=>{
+    if(Math.abs(p.x)>R||Math.abs(p.y)>R)return;
+    s+=`<circle class="${p.cls||"P"}${p.pop?" pop":""}" cx="${X(p.x)}" cy="${Y(p.y)}" r="${p.r||6.5}"${p.delay?` style="animation-delay:${p.delay}s"`:""}/>`;
+    if(p.label){const right=p.x<R-3;s+=`<text class="pl${p.pop?" pop":""}" x="${X(p.x)+(right?10:-10)}" y="${Y(p.y)-10}" text-anchor="${right?"start":"end"}"${p.delay?` style="animation-delay:${p.delay}s"`:""}>${p.label}</text>`}
+  });
+  return s+"</svg>";
+}
+const gbox=svg=>`<div class="gframe">${svg}</div>`;
+const lines2=(e1,e2,extra={})=>Object.assign({lines:[{e:e1.std,cls:"L1"},{e:e2.std,cls:"L2"}]},extra);
+
+/* ---------- speech ---------- */
+const canSpeak=(()=>{try{return "speechSynthesis" in window && typeof SpeechSynthesisUtterance==="function"}catch(e){return false}})();
+function toSpeech(t){
+  return t.replace(/−/g," minus ").replace(/=/g," equals ").replace(/≤/g," is less than or equal to ").replace(/≥/g," is greater than or equal to ")
+    .replace(/</g," is less than ").replace(/>/g," is greater than ").replace(/✓/g," check ").replace(/→/g," then ").replace(/\s+/g," ");
+}
+function speak(t,onend){
+  if(!canSpeak){onend&&onend();return}
+  try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(toSpeech(t));u.rate=.92;if(onend)u.onend=onend;speechSynthesis.speak(u)}catch(e){onend&&onend()}
+}
+function stopSpeak(){try{canSpeak&&speechSynthesis.cancel()}catch(e){}}
+
+/* ---------- storage ---------- */
+const load=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}};
+const save=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+
+/* ---------- generators ---------- */
+const SLOPES_INT=[1,2,3,-1,-2,-3];
+const SLOPES_FR=[[1,2],[-1,2],[1,3],[-1,3],[2,3],[-2,3],[3,2],[-3,2],[1,1],[-1,1],[2,1],[-2,1],[3,1],[-3,1],[1,4],[-1,4]];
+
+function genGraphing(level){
+  for(let t=0;t<2000;t++){
+    const x0=ri(-5,5),y0=ri(-5,5);
+    const s1=level===1?[pick(SLOPES_INT),1]:pick(SLOPES_FR);
+    const s2=level===1?[pick(SLOPES_INT),1]:pick(SLOPES_FR);
+    if(s1[0]*s2[1]===s2[0]*s1[1])continue;
+    if((s1[0]*x0)%s1[1]!==0||(s2[0]*x0)%s2[1]!==0)continue;
+    const k1=y0-s1[0]*x0/s1[1],k2=y0-s2[0]*x0/s2[1];
+    if(Math.abs(k1)>8||Math.abs(k2)>8)continue;
+    const L1=SI(s1[0],s1[1],k1),L2=SI(s2[0],s2[1],k2);
+    let e1=L1,e2=L2;
+    if(level===3){
+      const t1=pick([1,1,2,-1]),t2=pick([1,1,2,-1]);
+      const a=L1.std,b=L2.std;
+      e1=ST(a.a*t1,a.b*t1,a.c*t1); e2=ST(b.a*t2,b.b*t2,b.c*t2);
+    }
+    const g=lines2(e1,e2,{label:"Graph of Equation 1 (blue) and Equation 2 (orange)"});
+    const hints=[];
+    if(level===3)hints.push({html:`Rewrite both in slope-intercept form: ${M(`<span class="e1">${L1.show}</span>`)} and ${M(`<span class="e2">${L2.show}</span>`)}`});
+    if(level===3)hints.push({html:"Here is the graph. Find where the lines cross.",reveal:true});
+    hints.push({html:`The blue line crosses the y-axis at ${M(num(k1))}. The orange line crosses it at ${M(num(k2))}. Follow each line until they meet.`});
+    hints.push({html:"Put your finger on the crossing point. Count left or right from 0 to get x. Count up or down to get y."});
+    const runs=(s,k)=>{const [n,d]=s;return `Start at ${M("(0, "+num(k)+")")}. The slope is ${M(frac(n,d))}, so go ${n>0?"up":"down"} ${Math.abs(n)} and right ${d}.`};
+    return {kind:"graphing",type:"xy",
+      prompt: level===3?"Solve the system by graphing. Try to graph the lines yourself on paper first.":"The graph shows both equations. Find the solution of the system.",
+      sys:sysHTML(e1.show,e2.show), graph:g, graphHidden:level===3, eqs:[e1.std,e2.std], ans:{x:x0,y:y0},
+      hints,
+      steps:[
+        ...(level===3?[`Rewrite in slope-intercept form: ${M(`<span class="e1">${L1.show}</span>`)} and ${M(`<span class="e2">${L2.show}</span>`)}.`]:[]),
+        `<span class="e1">Line 1:</span> ${runs(s1,k1)}`,
+        `<span class="e2">Line 2:</span> ${runs(s2,k2)}`,
+        `The lines cross at ${M(`<span class="s">(${num(x0)}, ${num(y0)})</span>`)}.`,
+        `Check Equation 1: ${M(`<span class="e1">${e1.check(x0,y0)}</span>`)}`,
+        `Check Equation 2: ${M(`<span class="e2">${e2.check(x0,y0)}</span>`)}`
+      ],
+      solGraph:lines2(e1,e2,{points:[{x:x0,y:y0,label:`(${num(x0)}, ${num(y0)})`}]})
+    };
+  }
+}
+
+function genSubstitution(level){
+  for(let t=0;t<2000;t++){
+    const x0=ri(-6,6),y0=ri(-6,6);
+    const s=level===2?pick(["x","y"]):"y", o=s==="x"?"y":"x";
+    const sv=s==="x"?x0:y0, ov=s==="x"?y0:x0;
+    const m=nz(-4,4), k=sv-m*ov;
+    if(Math.abs(k)>12)continue;
+    const A=nz(-5,5),B=nz(-5,5);
+    const coef=A*m+B; if(coef===0)continue;
+    const C=A*sv+B*ov;
+    const a2=s==="x"?A:B,b2=s==="x"?B:A;
+    const e2=ST(a2,b2,C);
+    const rhs=`${term(m,o,true)}${konst(k)}`;
+    let e1show,e1std;
+    if(level===3){ // s - m o = k, but shown in x,y order
+      const ax=s==="x"?1:-m, by=s==="x"?-m:1;
+      e1std={a:ax,b:by,c:k}; e1show=fmtStd(ax,by,k);
+    }else{
+      e1show=`${s} = ${rhs}`;
+      e1std=s==="y"?{a:-m,b:1,c:k}:{a:1,b:-m,c:k};
+    }
+    const e1={std:e1std,show:e1show,check:(x,y)=>chkStd(e1std,x,y)};
+    const Acoef=A===1?"":A===-1?MN:num(A);
+    const subLine=`${Acoef}(${rhs})${term(B,o,false)} = ${num(C)}`;
+    // note order: in eq2 displayed order may put o first; we write s-part first for clarity
+    const dist=`${term(A*m,o,true)}${konst(A*k)}${term(B,o,false)} = ${num(C)}`;
+    const comb=`${term(coef,o,true)}${konst(A*k)} = ${num(C)}`;
+    const steps=[];
+    if(level===3)steps.push(`Solve Equation 1 for ${s}. Move the ${o}-term to the other side: ${M(`<span class="e1">${s} = ${rhs}</span>`)}`);
+    else steps.push(`Equation 1 already tells you what ${s} equals: ${M(`<span class="e1">${s} = ${rhs}</span>`)}`);
+    steps.push(`Substitute ${M("("+rhs+")")} for ${s} in Equation 2: ${M(`<span class="e2">${subLine}</span>`)}`);
+    steps.push(`Distribute: ${M(dist)}`);
+    steps.push(`Combine like terms: ${M(comb)}`);
+    if(A*k!==0)steps.push(`${A*k>0?"Subtract":"Add"} ${Math.abs(A*k)} ${A*k>0?"from":"to"} both sides: ${M(`${term(coef,o,true)} = ${num(C-A*k)}`)}`);
+    if(coef!==1)steps.push(`Divide both sides by ${num(coef)}: ${M(`${o} = ${num(ov)}`)}`);
+    steps.push(`Put ${M(`${o} = ${num(ov)}`)} into ${M(`${s} = ${rhs}`)}: ${M(`${s} = ${m===1?"":m===-1?MN:num(m)}(${num(ov)})${konst(k)} = ${num(sv)}`)}`);
+    steps.push(`Solution: ${M(`<span class="s">(${num(x0)}, ${num(y0)})</span>`)}. Check Equation 2: ${M(`<span class="e2">${e2.check(x0,y0)}</span>`)}`);
+    const hints=[];
+    if(level===3)hints.push({html:`In Equation 1, the ${s}-term has a coefficient of 1. Get ${s} alone: ${M(`${s} = ${rhs}`)}`});
+    else hints.push({html:`Equation 1 says ${s} = ${rhs}. Wherever you see ${s} in Equation 2, write (${rhs}) instead.`});
+    hints.push({html:`After substituting: ${M(subLine)}. Now only ${o} is left.`});
+    hints.push({html:`Distribute and combine like terms. You should get ${M(comb)}. Solve for ${o}, then find ${s}.`});
+    return {kind:"substitution",type:"xy",prompt:"Solve the system by substitution.",
+      sys:sysHTML(e1show,e2.show),eqs:[e1std,e2.std],ans:{x:x0,y:y0},hints,steps,
+      solGraph:{lines:[{e:e1std,cls:"L1"},{e:e2.std,cls:"L2"}],points:[{x:x0,y:y0,label:`(${num(x0)}, ${num(y0)})`}],R:Math.max(10,Math.abs(x0)+2,Math.abs(y0)+2)}};
+  }
+}
+
+function genElimination(level){
+  for(let t=0;t<3000;t++){
+    const x0=ri(-6,6),y0=ri(-6,6);
+    const ev=Math.random()<.6?"y":"x", kv=ev==="y"?"x":"y";
+    const ve=ev==="y"?y0:x0, vk=ev==="y"?x0:y0;
+    let be1,be2;
+    if(level===1){be1=nz(-5,5);be2=Math.random()<.7?-be1:be1}
+    else if(level===2){be1=pick([1,-1,2,-2,3,-3]);const tt=pick([2,3,4]);be2=be1*tt*(Math.random()<.5?-1:1); if(Math.random()<.5)[be1,be2]=[be2,be1]}
+    else{const p=pick([[2,3],[3,4],[2,5],[3,5],[4,5],[5,2],[4,3],[3,2]]);be1=p[0]*(Math.random()<.5?-1:1);be2=p[1]*(Math.random()<.5?-1:1)}
+    const ak1=nz(-5,5),ak2=nz(-5,5);
+    if(level===3&&(Math.abs(ak1)===Math.abs(ak2)))continue; // keep "multiply both" necessary-ish
+    let m1,m2;
+    if(be1===-be2){m1=1;m2=1}
+    else if(be1===be2){m1=1;m2=-1}
+    else{const L=lcm(be1,be2);m1=L/Math.abs(be1);m2=L/Math.abs(be2);
+      if(Math.sign(be1)===Math.sign(be2)){if(m2===1)m1=-m1;else m2=-m2}}
+    const nK=m1*ak1+m2*ak2; if(nK===0)continue;
+    const c1=ak1*vk+be1*ve,c2=ak2*vk+be2*ve;
+    const nC=m1*c1+m2*c2;
+    if(nC/nK!==vk)continue;
+    if(Math.abs(c1)>60||Math.abs(c2)>60)continue;
+    const mk=(ak,be,c)=>ev==="y"?{a:ak,b:be,c}:{a:be,b:ak,c};
+    const E1=mk(ak1,be1,c1),E2=mk(ak2,be2,c2);
+    const e1=ST(E1.a,E1.b,E1.c),e2=ST(E2.a,E2.b,E2.c);
+    const scaled=(E,mm)=>fmtStd(E.a*mm,E.b*mm,E.c*mm);
+    const steps=[];let h1,h2;
+    if(m1===1&&m2===1){
+      steps.push(`The ${ev}-terms are ${M(term(be1,ev,true))} and ${M(term(be2,ev,true))}. They are opposites, so add the equations.`);
+      h1=`Look at the ${ev}-terms: ${term(be1,ev,true)} and ${term(be2,ev,true)}. What happens if you add them?`;
+      h2=`Add the equations. The ${ev}-terms cancel and you get ${M(`${term(nK,kv,true)} = ${num(nC)}`)}.`;
+    }else if(m1===1&&m2===-1){
+      steps.push(`The ${ev}-terms are both ${M(term(be1,ev,true))}. Multiply Equation 2 by −1: ${M(`<span class="e2">${scaled(E2,-1)}</span>`)}`);
+      h1=`The ${ev}-terms are the same. Subtract the equations, or multiply Equation 2 by −1 and add.`;
+      h2=`Equation 2 times −1 is ${M(scaled(E2,-1))}. Add it to Equation 1.`;
+    }else{
+      const parts=[];
+      if(m1!==1)parts.push(`Multiply Equation 1 by ${num(m1)}: ${M(`<span class="e1">${scaled(E1,m1)}</span>`)}`);
+      if(m2!==1)parts.push(`Multiply Equation 2 by ${num(m2)}: ${M(`<span class="e2">${scaled(E2,m2)}</span>`)}`);
+      steps.push(`Make the ${ev}-terms opposites. `+parts.join(". "));
+      h1=`Neither variable cancels yet. Multiply ${m1!==1&&m2!==1?"both equations":m1!==1?"Equation 1":"Equation 2"} so the ${ev}-terms become opposites. Try ${m1!==1?"Equation 1 × "+num(m1):""}${m1!==1&&m2!==1?" and ":""}${m2!==1?"Equation 2 × "+num(m2):""}.`;
+      h2=`New equations: ${M(m1!==1?scaled(E1,m1):e1.show)} and ${M(m2!==1?scaled(E2,m2):e2.show)}. Now add them.`;
+    }
+    steps.push(`Add the equations. The ${ev}-terms cancel: ${M(`${term(nK,kv,true)} = ${num(nC)}`)}`);
+    if(nK!==1)steps.push(`Divide by ${num(nK)}: ${M(`${kv} = ${num(vk)}`)}`);
+    const back=`${term(be1,ev,true)}${konst(ak1*vk)} = ${num(c1)}`;
+    steps.push(`Substitute ${M(`${kv} = ${num(vk)}`)} into Equation 1: ${M(`<span class="e1">${back}</span>`)}`);
+    if(ak1*vk!==0)steps.push(`${ak1*vk>0?"Subtract":"Add"} ${Math.abs(ak1*vk)}: ${M(`${term(be1,ev,true)} = ${num(c1-ak1*vk)}`)}`);
+    if(be1!==1)steps.push(`Divide by ${num(be1)}: ${M(`${ev} = ${num(ve)}`)}`);
+    steps.push(`Solution: ${M(`<span class="s">(${num(x0)}, ${num(y0)})</span>`)}. Check Equation 2: ${M(`<span class="e2">${e2.check(x0,y0)}</span>`)}`);
+    return {kind:"elimination",type:"xy",prompt:"Solve the system by elimination.",sys:sysHTML(e1.show,e2.show),eqs:[E1,E2],ans:{x:x0,y:y0},
+      hints:[{html:h1},{html:h2},{html:`Solve for ${kv}. Then put that value into Equation 1 to find ${ev}.`}],steps,
+      solGraph:{lines:[{e:E1,cls:"L1"},{e:E2,cls:"L2"}],points:[{x:x0,y:y0,label:`(${num(x0)}, ${num(y0)})`}],R:Math.max(10,Math.abs(x0)+2,Math.abs(y0)+2)}};
+  }
+}
+
+function genCheck(){
+  // Is (p,q) a solution? choice
+  const x0=ri(-5,5),y0=ri(-5,5);
+  let s1,s2;do{s1=pick(SLOPES_INT);s2=pick(SLOPES_INT)}while(s1===s2);
+  const k1=y0-s1*x0,k2=y0-s2*x0;
+  const e1=SI(s1,1,k1),e2=SI(s2,1,k2);
+  const mode=pick(["yes","one","one","swap","none"]);
+  let px=x0,py=y0;
+  if(mode==="one"){px=x0+nz(-2,2);py=s1*px+k1;if(Math.random()<.5){py=s2*px+k2}}
+  if(mode==="swap"){if(x0===y0){px=x0+1;py=s1*px+k1}else{px=y0;py=x0}}
+  if(mode==="none"){px=x0+nz(-3,3);py=y0+nz(-3,3)}
+  const ok1=sat(e1.std,px,py),ok2=sat(e2.std,px,py),yes=ok1&&ok2;
+  const line=(e,n,k,cls)=>{const v=n*px+k;return `${M(`<span class="${cls}">${num(py)} = ${n===1?"":n===-1?MN:num(n)}(${num(px)})${konst(k)} → ${num(py)} = ${num(v)}</span>`)} ${v===py?"✓ true":"✗ false"}`};
+  return {kind:"check",type:"choice",prompt:`Is ${M(`(${num(px)}, ${num(py)})`)} a solution of this system?`,sys:sysHTML(e1.show,e2.show),
+    choices:["Yes, it is a solution","No, it is not a solution"],correct:yes?0:1,
+    hints:[{html:`Substitute x = ${num(px)} and y = ${num(py)} into Equation 1. Is it true?`},{html:"Now try Equation 2. The point must make <b>both</b> equations true."}],
+    steps:[`Equation 1: ${line(e1,s1,k1,"e1")}`,`Equation 2: ${line(e2,s2,k2,"e2")}`,
+      yes?`Both are true, so ${M(`(${num(px)}, ${num(py)})`)} <b>is</b> the solution.`:(ok1||ok2)?`Only one equation is true. The point is on one line but not the other, so it is <b>not</b> a solution.`:`Neither equation is true, so it is <b>not</b> a solution.`],
+    solGraph:lines2(e1,e2,{points:[{x:x0,y:y0,label:`(${num(x0)}, ${num(y0)})`},...(yes?[]:[{x:px,y:py,cls:"Pq",label:`(${num(px)}, ${num(py)})`}])]})};
+}
+
+function genSpecial(level){
+  const type=pick(["one","none","inf"]);
+  const s=pick(SLOPES_FR.filter(v=>v[0]!==0));
+  const k1=ri(-6,6);
+  let e1,e2,L2n=s[0],L2d=s[1],k2=k1;
+  if(type==="none"){do{k2=ri(-7,7)}while(k2===k1)}
+  if(type==="one"){let s2;do{s2=pick(SLOPES_FR)}while(s2[0]*s[1]===s[0]*s2[1]);L2n=s2[0];L2d=s2[1];k2=ri(-6,6)}
+  const A=SI(s[0],s[1],k1),B=SI(L2n,L2d,k2);
+  const scaleStd=(E,t)=>ST(E.std.a*t,E.std.b*t,E.std.c*t);
+  if(level===1){
+    e1=A;
+    e2= type==="inf"?scaleStd(B,pick([1,2,3,-1])):(Math.random()<.6?B:scaleStd(B,pick([1,2])));
+  }else{
+    e1=scaleStd(A,pick([1,2,-1])); e2=scaleStd(B,pick([1,2,3,-2]));
+  }
+  const names={one:"One solution",none:"No solution",inf:"Infinitely many solutions"};
+  const slopeA=frac(s[0],s[1]),slopeB=frac(L2n,L2d);
+  const steps=[];
+  steps.push(`Equation 1 in slope-intercept form: ${M(`<span class="e1">${A.show}</span>`)}. Slope ${M(slopeA)}, y-intercept ${M(num(k1))}.`);
+  steps.push(`Equation 2 in slope-intercept form: ${M(`<span class="e2">${B.show}</span>`)}. Slope ${M(slopeB)}, y-intercept ${M(num(k2))}.`);
+  if(type==="one")steps.push("The slopes are different, so the lines cross at exactly one point. <b>One solution.</b>");
+  if(type==="none")steps.push(`Same slope, different y-intercepts: the lines are parallel and never cross. Solving gives ${M(`${num(k1)} = ${num(k2)}`)}, which is false. <b>No solution.</b>`);
+  if(type==="inf")steps.push(`Same slope and same y-intercept: both equations make the same line. Solving gives ${M(`${num(k1)} = ${num(k1)}`)}, which is always true. <b>Infinitely many solutions.</b>`);
+  return {kind:"special",type:"choice",prompt:"How many solutions does this system have?",sys:sysHTML(e1.show,e2.show),
+    choices:[names.one,names.none,names.inf],correct:["one","none","inf"].indexOf(type),
+    hints:[{html:"Rewrite both equations in y = mx + b form."},{html:"Compare the slopes first. Different slopes mean the lines cross once. If the slopes are the same, compare the y-intercepts."},{html:`The slope-intercept forms are ${M(`<span class="e1">${A.show}</span>`)} and ${M(`<span class="e2">${B.show}</span>`)}.`}],
+    steps,solGraph:{lines:[{e:A.std,cls:"L1"},{e:B.std,cls:type==="inf"?"L2 over":"L2"}]}};
+}
+
+const TOTALS=[
+  {x:"adult tickets",y:"student tickets",xs:"adult",ys:"student",story:(T,p,q,M2)=>`The drama club sold ${T} tickets to the spring play. Adult tickets cost $${p} and student tickets cost $${q}. The club collected $${M2}. How many of each kind of ticket did they sell?`},
+  {x:"cupcakes",y:"cookies",xs:"cupcakes",ys:"cookies",story:(T,p,q,M2)=>`At the bake sale, cupcakes cost $${p} and cookies cost $${q}. The 8th grade sold ${T} items and made $${M2}. How many cupcakes and how many cookies did they sell?`},
+  {x:"large candles",y:"small candles",xs:"large candles",ys:"small candles",story:(T,p,q,M2)=>`For a fundraiser, the band sold ${T} candles. Large candles cost $${p} and small candles cost $${q}. They raised $${M2}. How many of each size did they sell?`},
+  {x:"3-point shots",y:"2-point shots",xs:"3-point shots",ys:"2-point shots",story:(T,p,q,M2)=>`A basketball player made ${T} shots in a game and scored ${M2} points. Every shot was worth ${q} or ${p} points. How many of each did she make?`,swap:true}
+];
+const RATES=[
+  {x:"months",y:"total cost ($)",story:(fa,ra,fb,rb)=>`Gym A charges $${fa} to join plus $${ra} per month. Gym B charges $${fb} to join plus $${rb} per month. After how many months do the two gyms cost the same? What is that cost?`,unitX:"months",unitY:"dollars"},
+  {x:"weeks",y:"savings ($)",story:(fa,ra,fb,rb)=>`Maya has $${fa} and saves $${ra} each week. Jordan has $${fb} and saves $${rb} each week. After how many weeks will they have the same amount? How much will each have?`,unitX:"weeks",unitY:"dollars"},
+  {x:"miles",y:"total cost ($)",story:(fa,ra,fb,rb)=>`Taxi A charges $${fa} plus $${ra} per mile. Taxi B charges $${fb} plus $${rb} per mile. For how many miles do they cost the same? What is the cost?`,unitX:"miles",unitY:"dollars"}
+];
+function genContext(level){
+  const t=pick(level===2?["total","rate","numbers","rect","breakeven"]:["total","rate","numbers","rect"]);
+  let story,labels,e1,e2,x0,y0,steps,setup,method,interp;
+  if(t==="total"){
+    const c=pick(TOTALS);
+    let p,q;
+    if(c.swap){p=3;q=2}else{p=pick([5,6,7,8,9,10,12]);q=ri(2,p-2)}
+    x0=ri(c.swap?2:12,c.swap?9:70);y0=ri(c.swap?3:12,c.swap?12:70);
+    const T=x0+y0,MM=p*x0+q*y0;
+    story=c.swap?c.story(T,3,2,MM):c.story(T,p,q,MM);
+    labels={x:c.x,y:c.y};
+    e1=ST(1,1,T);e2=ST(p,q,MM);
+    setup=`Let x = number of ${c.x} and y = number of ${c.y}. Count equation: ${M("x + y = "+T)}. ${c.swap?"Points":"Money"} equation: ${M(fmtStd(p,q,MM))}.`;
+    steps=[setup,
+      `Solve the count equation for y: ${M(`y = ${T} ${MN} x`)}`,
+      `Substitute: ${M(`${p}x + ${q}(${T} ${MN} x) = ${MM}`)} → ${M(`${p-q}x + ${q*T} = ${MM}`)}`,
+      `${M(`${term(p-q,"x",true)} = ${MM-q*T}`)} → ${M(`x = ${x0}`)}, so ${M(`y = ${T} ${MN} ${x0} = ${y0}`)}`,
+      `<b>Answer:</b> ${x0} ${c.xs} and ${y0} ${c.ys}. Check: ${M(`${p}(${x0}) + ${q}(${y0}) = ${p*x0} + ${q*y0} = ${MM}`)} ✓`];
+    method="substitution (or elimination: multiply the count equation by "+num(-q)+")";
+  }else if(t==="rate"){
+    const c=pick(RATES);
+    x0=ri(2,12);const rb=ri(2,8),ra=rb+ri(1,6),fa=pick([0,5,10,15,20,25,30].filter(v=>v<=60));
+    const fb=fa+(ra-rb)*x0; y0=fa+ra*x0;
+    story=c.story(fa,ra,fb,rb); labels={x:c.x,y:c.y};
+    e1=SI(ra,1,fa);e2=SI(rb,1,fb);
+    setup=`Let x = ${c.x} and y = ${c.y}. First: ${M(fmtSI(ra,1,fa))}. Second: ${M(fmtSI(rb,1,fb))}.`;
+    steps=[setup,
+      `Both equal y, so set them equal: ${M(`${term(ra,"x",true)}${konst(fa)} = ${term(rb,"x",true)}${konst(fb)}`)}`,
+      `Subtract ${rb}x: ${M(`${term(ra-rb,"x",true)}${konst(fa)} = ${fb}`)} → ${M(`${term(ra-rb,"x",true)} = ${fb-fa}`)} → ${M(`x = ${x0}`)}`,
+      `Find y: ${M(`y = ${ra}(${x0})${konst(fa)} = ${y0}`)}`,
+      `<b>Answer:</b> after ${x0} ${c.unitX}, both are $${y0}.`];
+    method="substitution (set the two expressions for y equal)";
+  }else if(t==="numbers"){
+    y0=ri(3,30);x0=y0+ri(2,25);const S=x0+y0,D=x0-y0;
+    story=`The sum of two numbers is ${S}. The larger number minus the smaller number is ${D}. What are the two numbers?`;
+    labels={x:"larger number",y:"smaller number"};
+    e1=ST(1,1,S);e2=ST(1,-1,D);
+    setup=`Let x = the larger number and y = the smaller number. ${M(`x + y = ${S}`)} and ${M(`x ${MN} y = ${D}`)}.`;
+    steps=[setup,`The y-terms are opposites. Add: ${M(`2x = ${S+D}`)} → ${M(`x = ${x0}`)}`,`Substitute: ${M(`${x0} + y = ${S}`)} → ${M(`y = ${y0}`)}`,`<b>Answer:</b> the numbers are ${x0} and ${y0}.`];
+    method="elimination (just add)";
+  }else if(t==="rect"){
+    y0=ri(4,18);const k=ri(2,12);x0=y0+k;const P=2*x0+2*y0;
+    story=`The perimeter of a rectangular garden is ${P} feet. The length is ${k} feet longer than the width. Find the length and the width.`;
+    labels={x:"length (ft)",y:"width (ft)"};
+    e1=ST(2,2,P);e2={std:{a:1,b:-1,c:k},show:fmtSI(1,1,k,"x","y"),check:(x,y)=>`${x} = ${y} + ${k} ✓`};
+    setup=`Let x = length and y = width. Perimeter: ${M(`2x + 2y = ${P}`)}. Length fact: ${M(`x = y + ${k}`)}.`;
+    steps=[setup,`Substitute: ${M(`2(y + ${k}) + 2y = ${P}`)} → ${M(`4y + ${2*k} = ${P}`)}`,`${M(`4y = ${P-2*k}`)} → ${M(`y = ${y0}`)}`,`${M(`x = ${y0} + ${k} = ${x0}`)}`,`<b>Answer:</b> the length is ${x0} ft and the width is ${y0} ft.`];
+    method="substitution (x is already alone)";
+  }else{ // breakeven
+    x0=pick([20,25,30,40,50,60,75,80,100]);const v=ri(1,6),p=v+pick([1,2,3,4,5]);const F=(p-v)*x0;y0=p*x0;
+    story=`A student business makes T-shirts. Setup costs are $${F}, and each shirt costs $${v} to make. They sell each shirt for $${p}. How many shirts must they sell to <b>break even</b> (cost = income)? What are the cost and income at that point?`;
+    labels={x:"shirts",y:"dollars"};
+    e1=SI(v,1,F);e2=SI(p,1,0);
+    setup=`Let x = shirts and y = dollars. Cost: ${M(fmtSI(v,1,F))}. Income: ${M(fmtSI(p,1,0))}.`;
+    steps=[setup,`Break even means cost = income: ${M(`${p}x = ${v}x + ${F}`)}`,`${M(`${p-v}x = ${F}`)} → ${M(`x = ${x0}`)}`,`${M(`y = ${p}(${x0}) = ${y0}`)}`,`<b>Answer:</b> they must sell ${x0} shirts. Cost and income are both $${y0}. Every shirt after that is profit.`];
+    method="substitution";
+  }
+  const hints=level===1?[{html:`Variables: x = ${labels.x}, y = ${labels.y}.`},{html:"Use the equations shown under the story."},{html:`A good method here is ${method}.`}]
+    :[{html:`Define your variables: x = ${labels.x}, y = ${labels.y}.`},{html:"Write one equation for each fact in the story."},{html:setup},{html:`Now solve. A good method is ${method}.`}];
+  return {kind:"context",type:"xy",prompt:`<span class="story">${story}</span>`,sys:level===1?sysHTML(e1.show,e2.show):"",eqs:[e1.std,e2.std],ans:{x:x0,y:y0},labels,hints,steps};
+}
+
+function genParPerp(level){
+  const type=pick(["par","perp","neither"]);
+  const s=pick(SLOPES_FR.filter(v=>Math.abs(v[0])>0));
+  const k1=ri(-6,6);
+  let n2,d2,k2=ri(-6,6);
+  if(type==="par"){n2=s[0];d2=s[1];while(k2===k1)k2=ri(-6,6)}
+  else if(type==="perp"){n2=-s[1];d2=s[0]}
+  else{let c;do{c=pick(SLOPES_FR)}while(c[0]*s[1]===s[0]*c[1]||c[0]*s[0]===-c[1]*s[1]);n2=c[0];d2=c[1]}
+  const A=SI(s[0],s[1],k1),B=SI(n2,d2,k2);
+  const e2=level===2?(()=>{const t=pick([1,2,-1]);return ST(B.std.a*t,B.std.b*t,B.std.c*t)})():B;
+  const m1=frac(s[0],s[1]),m2=frac(n2,d2);
+  const prod=frac(s[0]*n2,s[1]*d2);
+  const names=["Parallel","Perpendicular","Neither"];
+  return {kind:"parperp",type:"choice",prompt:"Are these lines parallel, perpendicular, or neither?",sys:sysHTML(A.show,e2.show),choices:names,correct:["par","perp","neither"].indexOf(type),
+    hints:[{html:"Find the slope of each line. Write each in y = mx + b form if needed."},{html:"Same slope → parallel. Slopes multiply to −1 → perpendicular."}],
+    steps:[`Slope of line 1: ${M(m1)}.`,level===2?`Line 2 in slope-intercept form: ${M(B.show)}. Slope: ${M(m2)}.`:`Slope of line 2: ${M(m2)}.`,
+      type==="par"?"The slopes are equal and the y-intercepts are different, so the lines are <b>parallel</b>.":`Product of the slopes: ${M(prod)}. ${type==="perp"?"The product is −1, so the lines are <b>perpendicular</b>.":"The slopes are not equal and the product is not −1, so <b>neither</b>."}`],
+    solGraph:{lines:[{e:A.std,cls:"L1"},{e:B.std,cls:"L2"}]}};
+}
+
+const OPS=[">","≥","<","≤"];
+const holds=(op,l,r)=>op===">"?l>r:op==="≥"?l>=r:op==="<"?l<r:l<=r;
+function genIneq(level){
+  let m1,m2;do{m1=nz(-3,3);m2=nz(-3,3)}while(m1===m2);
+  const k1=ri(-4,4),k2=ri(-4,4),o1=pick(OPS),o2=pick(OPS);
+  const want=Math.random()<.5;
+  let px,py,tries=0;
+  do{px=ri(-6,6);py=ri(-6,6);tries++}while(tries<400&&((holds(o1,py,m1*px+k1)&&holds(o2,py,m2*px+k2))!==want));
+  const ok1=holds(o1,py,m1*px+k1),ok2=holds(o2,py,m2*px+k2),yes=ok1&&ok2;
+  const rhs=(m,k)=>`${term(m,"x",true)}${konst(k)}`;
+  const strict=o=>o===">"||o==="<",above=o=>o===">"||o==="≥";
+  const g={R:8,lines:[{e:siToStd(m1,1,k1),cls:"L1"+(strict(o1)?" dash":"")},{e:siToStd(m2,1,k2),cls:"L2"+(strict(o2)?" dash":"")}],
+    shades:[{m:m1,k:k1,above:above(o1),cls:"S1"},{m:m2,k:k2,above:above(o2),cls:"S2"}],points:[{x:px,y:py,cls:"Pq",label:`(${num(px)}, ${num(py)})`}],label:"Shaded graph of both inequalities"};
+  const chk=(m,k,o,cls)=>{const v=m*px+k;return `${M(`<span class="${cls}">${num(py)} ${o} ${m===1?"":m===-1?MN:num(m)}(${num(px)})${konst(k)} → ${num(py)} ${o} ${num(v)}</span>`)} ${holds(o,py,v)?"✓ true":"✗ false"}`};
+  return {kind:"ineq",type:"choice",prompt:`Is ${M(`(${num(px)}, ${num(py)})`)} a solution of the system of inequalities?`,sys:sysHTML(`y ${o1} ${rhs(m1,k1)}`,`y ${o2} ${rhs(m2,k2)}`),
+    graph:g,graphHidden:level===2,choices:["Yes, it is a solution","No, it is not a solution"],correct:yes?0:1,
+    hints:[{html:`Substitute x = ${num(px)} and y = ${num(py)} into the first inequality.`},{html:"Now the second inequality. The point must make both true."},...(level===2?[{html:"Here is the graph. Is the point in the overlap of both shaded regions?",reveal:true}]:[])],
+    steps:[`Inequality 1: ${chk(m1,k1,o1,"e1")}`,`Inequality 2: ${chk(m2,k2,o2,"e2")}`,yes?"Both are true. The point is in the overlap, so it <b>is</b> a solution.":"At least one is false, so it is <b>not</b> a solution."],
+    solGraph:g};
+}
+
+const GENS={check:genCheck,graphing:genGraphing,substitution:genSubstitution,elimination:genElimination,special:genSpecial,context:genContext,parperp:genParPerp,ineq:genIneq};
+const KIND_NAMES={check:"What's a solution?",graphing:"Graphing",substitution:"Substitution",elimination:"Elimination",special:"Special cases",context:"In context",parperp:"Parallel & perpendicular",ineq:"Inequalities"};
+const MIX=["check","graphing","graphing","substitution","substitution","elimination","elimination","special","context","context"];
+let mixQueue=[];
+GENS.mixed=()=>{if(!mixQueue.length)mixQueue=shuffle(MIX.slice());const k=mixQueue.pop();return GENS[k](k==="check"?1:pick([1,2]))};
+window.__GENS=GENS;
+
+/* ---------- practice component ---------- */
+let pid=0;
+function Practice(root){
+  const id="p"+(++pid),gk=root.dataset.gen,levels=root.dataset.levels?root.dataset.levels.split("|"):null,quizN=+root.dataset.quiz||0;
+  const key="syslab-"+gk;
+  let stats=load(key)||{a:0,c:0,streak:0,best:0};
+  const st={level:1,p:null,first:false,hints:0,done:false,q:0,res:[]};
+  root.innerHTML=`<div class="pr-head"><h3>${quizN?"Review":"Practice"}</h3>${levels?`<div class="levels" role="group" aria-label="Difficulty level">${levels.map((l,i)=>`<button type="button" data-lv="${i+1}" aria-pressed="${i===0}" title="${l}">${l.split(":")[0]}</button>`).join("")}</div>`:""}</div>
+  ${levels?`<p class="score lvdesc"></p>`:""}<p class="score sc" aria-live="polite"></p><div class="pr-body"></div>`;
+  const body=$(".pr-body",root),sc=$(".sc",root),lvd=$(".lvdesc",root);
+  $$(".levels button",root).forEach(b=>b.onclick=()=>{st.level=+b.dataset.lv;$$(".levels button",root).forEach(x=>x.setAttribute("aria-pressed",x===b));newP()});
+  function score(){
+    if(lvd)lvd.textContent=levels[st.level-1];
+    if(quizN){sc.textContent=st.q<=quizN?`Question ${st.q} of ${quizN} · ${st.res.filter(r=>r.ok).length} correct so far`:"";return}
+    sc.textContent=stats.a?`${stats.c} of ${stats.a} correct on the first try · streak ${stats.streak}${stats.best>1?` · best streak ${stats.best}`:""}`:"Your score shows up here after your first answer.";
+  }
+  function record(ok){
+    if(st.first)return; st.first=true;
+    if(quizN){st.res.push({kind:st.p.kind,ok});score();return}
+    stats.a++;if(ok){stats.c++;stats.streak++;stats.best=Math.max(stats.best||0,stats.streak)}else stats.streak=0;
+    save(key,stats);score();
+  }
+  function newP(){
+    stopSpeak();
+    if(quizN){ if(st.q>=quizN){summary();return} st.q++ }
+    st.p=GENS[gk](st.level);st.first=false;st.hints=0;st.done=false;draw();score();
+  }
+  function draw(){
+    const p=st.p,lb=p.labels||{x:"",y:""};
+    let ans="";
+    if(p.type==="xy"){
+      ans=`<div class="xy"><span class="pair">(</span><label for="${id}-x">x${lb.x?` <small>${lb.x}</small>`:""}<input id="${id}-x" inputmode="decimal" autocomplete="off" spellcheck="false"></label><span class="pair">,</span><label for="${id}-y">y${lb.y?` <small>${lb.y}</small>`:""}<input id="${id}-y" inputmode="decimal" autocomplete="off" spellcheck="false"></label><span class="pair">)</span></div>`;
+    }else{
+      ans=`<div class="choices" role="group" aria-label="Answer choices">${p.choices.map((c,i)=>`<button type="button" data-c="${i}">${c}</button>`).join("")}</div>`;
+    }
+    body.innerHTML=`<div class="pr-q"><div class="pr-prompt">${p.prompt}</div></div>${p.sys?`<div>${p.sys}</div>`:""}
+      ${p.graph?`<div class="pr-graph"${p.graphHidden?" hidden":""}>${gbox(graph(p.graph))}</div>`:""}
+      ${ans}
+      <div class="acts">${p.type==="xy"?`<button type="button" class="pri b-check">Check</button>`:""}<button type="button" class="b-hint">Hint</button><button type="button" class="b-sol">Show solution</button><button type="button" class="b-new">${quizN?"Skip":"New problem"}</button>${canSpeak?`<button type="button" class="b-say">Read aloud</button>`:""}</div>
+      <div class="fb" aria-live="polite"></div><ol class="hints"></ol><div class="sol" hidden></div>`;
+    const fb=$(".fb",body);
+    const hb=$(".b-hint",body);hb.textContent=`Hint (${p.hints.length} available)`;
+    hb.onclick=()=>{
+      if(st.hints>=p.hints.length)return;
+      const h=p.hints[st.hints++];
+      const li=document.createElement("li");li.innerHTML=`<b>Hint ${st.hints}.</b> ${h.html}`;$(".hints",body).append(li);
+      if(h.reveal){const g=$(".pr-graph",body);if(g)g.hidden=false}
+      hb.textContent=st.hints>=p.hints.length?"No more hints":`Next hint (${p.hints.length-st.hints} left)`;hb.disabled=st.hints>=p.hints.length;
+    };
+    $(".b-sol",body).onclick=()=>{showSol();if(!st.first)record(false);finish(false)};
+    $(".b-new",body).onclick=()=>{if(quizN&&!st.first)record(false);newP()};
+    const say=$(".b-say",body);if(say)say.onclick=()=>speak($(".pr-q",body).textContent+". "+(p.sys?$(".sys",body).innerText.replace(/\n/g,". "):""));
+    if(p.type==="xy"){
+      const ix=$("#"+id+"-x",body),iy=$("#"+id+"-y",body);
+      const go=()=>check(ix.value,iy.value,fb);
+      $(".b-check",body).onclick=go;[ix,iy].forEach(i=>i.addEventListener("keydown",e=>{if(e.key==="Enter")go()}));
+    }else{
+      $$(".choices button",body).forEach(b=>b.onclick=()=>{
+        if(st.done)return;
+        const i=+b.dataset.c,ok=i===p.correct;
+        record(ok);
+        if(ok){b.classList.add("right");fb.className="fb good";fb.innerHTML=`<b>Correct!</b> ${pick(["Nice reasoning.","You've got it.","Exactly right."])}`;showSol(true);finish(true)}
+        else{b.classList.add("wrong");b.disabled=true;fb.className="fb bad";fb.innerHTML=`Not quite. ${p.kind==="special"?"Compare the slopes, then the y-intercepts.":"Check each equation one at a time."} Try again or use a hint.`}
+      });
+    }
+  }
+  function parse(v){v=String(v).trim().replace(/−/g,"-").replace(/\s/g,"");if(v==="")return NaN;if(/^-?\d+\/\d+$/.test(v)){const[a,b]=v.split("/");return +a/+b}return Number(v)}
+  function check(xs,ys,fb){
+    if(st.done)return;
+    const p=st.p,x=parse(xs),y=parse(ys);
+    if(isNaN(x)||isNaN(y)){fb.className="fb info";fb.textContent="Type a number in both boxes.";return}
+    const [E1,E2]=p.eqs,ok1=sat(E1,x,y),ok2=sat(E2,x,y);
+    if(ok1&&ok2){record(true);fb.className="fb good";fb.innerHTML=`<b>Correct!</b> ${M(`(${num(p.ans.x)}, ${num(p.ans.y)})`)} makes both equations true.`;showSol(true);finish(true);return}
+    record(false);fb.className="fb bad";
+    if(sat(E1,y,x)&&sat(E2,y,x))fb.innerHTML="Close! You switched x and y. An ordered pair is always (x, y).";
+    else if(ok1)fb.innerHTML=`Your point works in <span class="e1">Equation 1</span> but not <span class="e2">Equation 2</span>. It is only on one line. Try again or use a hint.`;
+    else if(ok2)fb.innerHTML=`Your point works in <span class="e2">Equation 2</span> but not <span class="e1">Equation 1</span>. It is only on one line. Try again or use a hint.`;
+    else if(x===p.ans.x)fb.innerHTML=`Your x-value is right. Recheck y: substitute x = ${num(x)} back into one equation.`;
+    else if(y===p.ans.y)fb.innerHTML=`Your y-value is right. Recheck x: substitute y = ${num(y)} back into one equation.`;
+    else fb.innerHTML="That point is not on either line. Check your signs, or use a hint.";
+  }
+  function showSol(compact){
+    const p=st.p,s=$(".sol",body);
+    s.hidden=false;
+    s.innerHTML=`<h4>${compact?"How to solve it":"Solution"}</h4><ol>${p.steps.map(x=>`<li>${x}</li>`).join("")}</ol>${p.solGraph?`<div class="pr-graph">${gbox(graph(Object.assign({},p.solGraph,{points:(p.solGraph.points||[]).map(pt=>Object.assign({pop:true},pt))})))}</div>`:""}`;
+    if(compact){s.hidden=true;const fb=$(".fb",body);const b=document.createElement("button");b.type="button";b.textContent="See the steps and graph";b.style.cssText="margin-left:8px;background:none;border:0;color:inherit;text-decoration:underline;padding:0";b.onclick=()=>{s.hidden=false;b.remove()};fb.append(b)}
+  }
+  function finish(ok){
+    st.done=true;
+    $$(".choices button",body).forEach(b=>{b.disabled=true;if(+b.dataset.c===st.p.correct)b.classList.add("right")});
+    const nb=$(".b-new",body);nb.textContent=quizN?(st.q>=quizN?"See my results":"Next question"):"New problem";nb.classList.add("pri");
+    const cb=$(".b-check",body);if(cb)cb.classList.remove("pri");
+    nb.focus({preventScroll:true});
+  }
+  function summary(){
+    stopSpeak();
+    const right=st.res.filter(r=>r.ok).length;
+    const miss={};st.res.forEach(r=>{if(!r.ok)miss[r.kind]=(miss[r.kind]||0)+1});
+    const links={check:"#solution",graphing:"#graphing",substitution:"#substitution",elimination:"#elimination",special:"#special",context:"#context"};
+    const ks=Object.keys(miss);
+    sc.textContent="";
+    body.innerHTML=`<div class="summary"><span class="eyebrow">Your result</span><span class="big">${right} / ${quizN}</span>
+      <p>${right===quizN?"Perfect score. Try the Algebra I preview next.":right>=8?"Strong work. Review the sections below, then try again.":"Keep practicing. Start with the sections below."}</p>
+      ${ks.length?`<p><b>Revisit:</b> ${ks.map(k=>`<a href="${links[k]}">${KIND_NAMES[k]}</a> (${miss[k]} missed)`).join(", ")}</p>`:""}
+      <div class="acts"><button type="button" class="pri b-again">Start a new review</button></div></div>`;
+    $(".b-again",body).onclick=()=>{st.q=0;st.res=[];mixQueue=[];newP()};
+  }
+  newP();
+}
+
+/* ---------- walkthrough player ---------- */
+const WT={
+  graphing:{title:"Walkthrough: y = 2x − 1 and y = −x + 5",steps:[
+    {m:sysHTML("y = 2x − 1","y = −x + 5"),say:"We will solve this system by graphing. Line 1 is y equals 2x minus 1. Line 2 is y equals negative x plus 5.",g:{R:6}},
+    {m:`<span class="e1">Line 1: start at (0, −1). Slope 2 means up 2, right 1.</span>`,say:"For line 1, start at the y-intercept, negative 1. The slope is 2, so go up 2 and right 1. Draw the line.",g:{R:6,lines:[{e:{a:-2,b:1,c:-1},cls:"L1 draw"}],points:[{x:0,y:-1,cls:"yi1",r:5},{x:1,y:1,cls:"yi1",r:5}]}},
+    {m:`<span class="e2">Line 2: start at (0, 5). Slope −1 means down 1, right 1.</span>`,say:"For line 2, start at positive 5 on the y-axis. The slope is negative 1, so go down 1 and right 1.",g:{R:6,lines:[{e:{a:-2,b:1,c:-1},cls:"L1"},{e:{a:1,b:1,c:5},cls:"L2 draw"}],points:[{x:0,y:5,cls:"yi2",r:5},{x:1,y:4,cls:"yi2",r:5}]}},
+    {m:`The lines cross at <span class="s">(2, 3)</span>.`,say:"The lines cross at the point 2 comma 3. That is the solution.",g:{R:6,lines:[{e:{a:-2,b:1,c:-1},cls:"L1"},{e:{a:1,b:1,c:5},cls:"L2"}],points:[{x:2,y:3,label:"(2, 3)",pop:true}]}},
+    {m:`<span class="e1">3 = 2(2) − 1 = 3 ✓</span><br><span class="e2">3 = −2 + 5 = 3 ✓</span>`,say:"Check. In line 1, 2 times 2 minus 1 is 3. In line 2, negative 2 plus 5 is 3. Both are true.",g:{R:6,lines:[{e:{a:-2,b:1,c:-1},cls:"L1"},{e:{a:1,b:1,c:5},cls:"L2"}],points:[{x:2,y:3,label:"(2, 3)"}]}}
+  ]},
+  substitution:{title:"Walkthrough: y = 3x − 2 and 2x + y = 13",steps:[
+    {m:sysHTML("y = 3x − 2","2x + y = 13"),say:"Equation 1 already tells us what y equals: 3x minus 2."},
+    {m:`2x + <span class="e1">(3x − 2)</span> = 13`,say:"Substitute 3x minus 2 in place of y in equation 2. Use parentheses."},
+    {m:"5x − 2 = 13",say:"Combine like terms. 2x plus 3x is 5x. Now we have 5x minus 2 equals 13."},
+    {m:"5x = 15 → x = 3",say:"Add 2 to both sides to get 5x equals 15. Divide by 5. x equals 3."},
+    {m:`y = 3(3) − 2 = 7`,say:"Put x equals 3 back into equation 1. y equals 3 times 3 minus 2, which is 7."},
+    {m:`<span class="s">(3, 7)</span> · Check: 2(3) + 7 = 13 ✓`,say:"The solution is 3 comma 7. Check in equation 2: 6 plus 7 is 13. It works."}
+  ]},
+  elimination:{title:"Walkthrough: add to eliminate",steps:[
+    {m:sysHTML("3x + 2y = 16","5x − 2y = 0"),say:"Look at the y terms: positive 2y and negative 2y. They are opposites."},
+    {m:"(3x + 5x) + (2y − 2y) = 16 + 0",say:"Add the two equations, left side plus left side, right side plus right side."},
+    {m:"8x = 16 → x = 2",say:"The y terms cancel. 8x equals 16, so x equals 2."},
+    {m:`<span class="e1">3(2) + 2y = 16</span> → 2y = 10 → y = 5`,say:"Substitute 2 for x in equation 1. 6 plus 2y equals 16. 2y equals 10, so y equals 5."},
+    {m:`<span class="s">(2, 5)</span> · Check: 5(2) − 2(5) = 0 ✓`,say:"The solution is 2 comma 5. Check equation 2: 10 minus 10 is 0. It works."}
+  ]},
+  elimination2:{title:"Walkthrough: multiply first",steps:[
+    {m:sysHTML("x + 3y = 7","2x + 5y = 12"),say:"No terms are opposites yet. The x terms are 1x and 2x."},
+    {m:`<span class="e1">−2(x + 3y) = −2(7)</span> → <span class="e1">−2x − 6y = −14</span>`,say:"Multiply every term in equation 1 by negative 2. Now it is negative 2x minus 6y equals negative 14."},
+    {m:"(−2x + 2x) + (−6y + 5y) = −14 + 12",say:"Add this to equation 2. The x terms are now opposites."},
+    {m:"−y = −2 → y = 2",say:"Negative y equals negative 2, so y equals 2."},
+    {m:`<span class="e1">x + 3(2) = 7</span> → x = 1`,say:"Substitute y equals 2 into equation 1. x plus 6 equals 7, so x equals 1."},
+    {m:`<span class="s">(1, 2)</span> · Check: 2(1) + 5(2) = 12 ✓`,say:"The solution is 1 comma 2. Check: 2 plus 10 is 12."}
+  ]},
+  context:{title:"Walkthrough: play tickets",steps:[
+    {m:`<span class="story" style="display:block;background:var(--chip);border-radius:10px;padding:10px 12px">The class sold 120 tickets. Adult tickets cost $8 and student tickets cost $5. They collected $810.</span>`,say:"The class sold 120 tickets. Adult tickets cost 8 dollars and student tickets cost 5 dollars. They collected 810 dollars. How many of each did they sell?"},
+    {m:"Let x = adult tickets, y = student tickets",say:"First, define the variables. x is the number of adult tickets. y is the number of student tickets."},
+    {m:sysHTML("x + y = 120","8x + 5y = 810"),say:"Write an equation for each fact. Tickets: x plus y equals 120. Money: 8x plus 5y equals 810."},
+    {m:"y = 120 − x → 8x + 5(120 − x) = 810",say:"Solve the first equation for y, then substitute into the money equation."},
+    {m:"3x + 600 = 810 → 3x = 210 → x = 70",say:"Distribute and combine. 3x plus 600 equals 810. 3x equals 210. x equals 70."},
+    {m:"y = 120 − 70 = 50",say:"y equals 120 minus 70, which is 50."},
+    {m:`<span class="s">70 adult tickets and 50 student tickets.</span> Check: 8(70) + 5(50) = 560 + 250 = 810 ✓`,say:"Answer in a sentence: they sold 70 adult tickets and 50 student tickets. Check: 560 plus 250 is 810."}
+  ]}
+};
+function Walkthrough(root){
+  const d=WT[root.dataset.wt];let i=-1,timer=null,playing=false,narrate=false;
+  const hasG=d.steps.some(s=>s.g);
+  root.innerHTML=`<div class="wt-bar"><span class="ttl">▶ ${d.title}</span><button type="button" class="w-play">Play</button><button type="button" class="w-prev" aria-label="Previous step">◀</button><button type="button" class="w-next" aria-label="Next step">▶</button>${canSpeak?`<button type="button" class="w-nar" aria-pressed="false">Narrate</button>`:""}<button type="button" class="w-reset">Restart</button></div><div class="wt-prog"><i></i></div>
+  <div class="wt-body">${hasG?`<div class="gframe w-g"></div>`:""}<ol class="wt-steps">${d.steps.map(s=>`<li><span class="m" style="white-space:normal">${s.m}</span><span class="say">${s.say}</span></li>`).join("")}</ol></div>`;
+  const lis=$$(".wt-steps li",root),pb=$(".w-play",root),prog=$(".wt-prog i",root),gEl=$(".w-g",root);
+  function show(n){
+    i=Math.max(-1,Math.min(d.steps.length-1,n));
+    lis.forEach((li,j)=>{li.classList.toggle("seen",j<=i);li.classList.toggle("cur",j===i)});
+    prog.style.width=((i+1)/d.steps.length*100)+"%";
+    if(gEl){let g=null;for(let j=i;j>=0;j--)if(d.steps[j].g){g=d.steps[j].g;break}gEl.innerHTML=graph(g||{R:6})}
+  }
+  function stop(){playing=false;clearTimeout(timer);pb.textContent="Play";stopSpeak()}
+  function tick(){
+    if(!playing)return;
+    if(i>=d.steps.length-1){stop();return}
+    show(i+1);
+    if(narrate)speak(d.steps[i].say,()=>{if(playing)timer=setTimeout(tick,500)});
+    else timer=setTimeout(tick,3600);
+  }
+  pb.onclick=()=>{if(playing){stop();return}if(i>=d.steps.length-1)show(-1);playing=true;pb.textContent="Pause";tick()};
+  $(".w-next",root).onclick=()=>{stop();show(i+1);if(narrate&&i>=0)speak(d.steps[i].say)};
+  $(".w-prev",root).onclick=()=>{stop();show(i-1);if(narrate&&i>=0)speak(d.steps[i].say)};
+  $(".w-reset",root).onclick=()=>{stop();show(-1)};
+  const nb=$(".w-nar",root);if(nb)nb.onclick=()=>{narrate=!narrate;nb.classList.toggle("on",narrate);nb.setAttribute("aria-pressed",narrate)};
+  show(d.steps.length-1); // complete at rest
+}
+
+/* ---------- explorer ---------- */
+function Explorer(){
+  const ids=["m1","b1","m2","b2"],el={};
+  ids.forEach(k=>{el[k]=$("#ex-"+k);el[k+"o"]=$("#ex-"+k+"o")});
+  const fmt=v=>{const r=Math.round(v*100)/100;return num(r)};
+  const lineTxt=(m,b)=>{let s="y = ";if(m!==0)s+=(m===1?"":m===-1?MN:fmt(m))+"x";if(b!==0||m===0)s+=m===0?fmt(b):konst(b);return s};
+  let testPt=null;
+  function upd(){
+    const m1=+el.m1.value,b1=+el.b1.value,m2=+el.m2.value,b2=+el.b2.value;
+    ids.forEach(k=>el[k+"o"].textContent=fmt(+el[k].value));
+    $("#ex-sys").innerHTML=sysHTML(lineTxt(m1,b1),lineTxt(m2,b2));
+    const L1={a:-m1,b:1,c:b1},L2={a:-m2,b:1,c:b2};
+    let pts=[],msg;
+    if(m1===m2){msg=b1===b2?"<b>Same line.</b> Every point on it solves both equations: infinitely many solutions.":"<b>Parallel lines.</b> Same slope, different intercepts. They never cross: no solution."}
+    else{const x=(b2-b1)/(m1-m2),y=m1*x+b1;const exact=Number.isInteger(x)&&Number.isInteger(y);
+      pts.push({x,y,label:`(${fmt(x)}, ${fmt(y)})`});
+      msg=`The lines cross at <span class="s">(${fmt(x)}, ${fmt(y)})</span>. This one point makes both equations true.${exact?"":" The point is between grid lines, so reading the graph only gives an estimate. Algebra gives the exact answer."}`}
+    if(testPt)pts.push(Object.assign({cls:"Pq",label:`(${fmt(testPt.x)}, ${fmt(testPt.y)})`},testPt));
+    $("#ex-read").innerHTML=msg;
+    $("#ex-graph").innerHTML=graph({lines:[{e:L1,cls:"L1"},{e:L2,cls:m1===m2&&b1===b2?"L2 over":"L2"}],points:pts,label:"Line explorer graph"});
+  }
+  ids.forEach(k=>el[k].addEventListener("input",()=>{upd();if(testPt)runTest()}));
+  function runTest(){
+    const px=+String($("#ex-px").value).replace(/−/g,"-"),py=+String($("#ex-py").value).replace(/−/g,"-");
+    const out=$("#ex-testout");
+    if(isNaN(px)||isNaN(py)||$("#ex-px").value===""||$("#ex-py").value===""){out.textContent="Type numbers for x and y.";return}
+    testPt={x:px,y:py};
+    const m1=+el.m1.value,b1=+el.b1.value,m2=+el.m2.value,b2=+el.b2.value;
+    const v1=m1*px+b1,v2=m2*px+b2,ok1=Math.abs(v1-py)<1e-9,ok2=Math.abs(v2-py)<1e-9;
+    out.innerHTML=`<span class="e1">Equation 1: ${num(py)} = ${fmt(m1)}(${num(px)})${konst(b1)} = ${fmt(v1)} ${ok1?"✓ true":"✗ false"}</span><br><span class="e2">Equation 2: ${num(py)} = ${fmt(m2)}(${num(px)})${konst(b2)} = ${fmt(v2)} ${ok2?"✓ true":"✗ false"}</span><br>${ok1&&ok2?"<b>Both true: this point is a solution.</b>":ok1||ok2?"Only one is true: the point is on one line, so it is <b>not</b> a solution.":"Neither is true: the point is not on either line."}`;
+    upd();
+  }
+  $("#ex-test").onclick=runTest;
+  ["ex-px","ex-py"].forEach(i=>$("#"+i).addEventListener("keydown",e=>{if(e.key==="Enter")runTest()}));
+  upd();
+}
+
+/* ---------- static graphs ---------- */
+function statics(){
+  $("#hero-graph").innerHTML=graph({R:6,label:"Two lines crossing at the point (2, 3)",lines:[{e:{a:-2,b:1,c:-1},cls:"L1 draw"},{e:{a:1,b:1,c:5},cls:"L2 draw",delay:.5}],points:[{x:2,y:3,label:"(2, 3)",pop:true,delay:1.4}]});
+  const sp=[
+    ["One solution",{R:6,lines:[{e:{a:-2,b:1,c:-1},cls:"L1"},{e:{a:1,b:1,c:5},cls:"L2"}],points:[{x:2,y:3}]}],
+    ["No solution",{R:6,lines:[{e:{a:-2,b:1,c:3},cls:"L1"},{e:{a:-2,b:1,c:-1},cls:"L2"}]}],
+    ["Infinitely many",{R:6,lines:[{e:{a:-2,b:1,c:3},cls:"L1"},{e:{a:4,b:-2,c:-6},cls:"L2 over"}]}]];
+  $("#special-graphs").innerHTML=sp.map(([t,g])=>`<div style="display:grid;gap:6px"><b>${t}</b>${gbox(graph(Object.assign({label:t},g)))}</div>`).join("");
+  $("#ineq-example").innerHTML=`<div style="display:grid;gap:8px">${sysHTML("y &gt; x − 2","y ≤ −2x + 4")}${gbox(graph({R:6,label:"Overlap of y > x − 2 and y ≤ −2x + 4",lines:[{e:{a:-1,b:1,c:-2},cls:"L1 dash"},{e:{a:2,b:1,c:4},cls:"L2"}],shades:[{m:1,k:-2,above:true,cls:"S1"},{m:-2,k:4,above:false,cls:"S2"}],points:[{x:0,y:0,cls:"Pq",label:"(0, 0)"}]}))}</div>`;
+}
+
+/* ---------- videos ---------- */
+const VIDS=[
+  ["Khan Academy","Systems of equations: the big idea","What a system is and why the intersection is the solution.","https://www.khanacademy.org/search?page_search_query=systems%20of%20equations%20intro"],
+  ["Khan Academy","Solving systems by graphing","Graph two lines and read the solution.","https://www.khanacademy.org/search?page_search_query=solving%20systems%20of%20equations%20graphically"],
+  ["Khan Academy","Solving systems by substitution","Worked examples and practice.","https://www.khanacademy.org/search?page_search_query=systems%20of%20equations%20with%20substitution"],
+  ["Khan Academy","Solving systems by elimination","Adding equations and multiplying first.","https://www.khanacademy.org/search?page_search_query=systems%20of%20equations%20with%20elimination"],
+  ["Khan Academy","Number of solutions to a system","Parallel lines, same lines, and crossing lines.","https://www.khanacademy.org/search?page_search_query=number%20of%20solutions%20to%20system%20of%20equations"],
+  ["Khan Academy","Systems of equations word problems","Setting up and solving real-world systems.","https://www.khanacademy.org/search?page_search_query=systems%20of%20equations%20word%20problems"],
+  ["YouTube","Solving systems by graphing (8th grade)","Short video lessons at the 8th grade level.","https://www.youtube.com/results?search_query=solving+systems+of+equations+by+graphing+8th+grade"],
+  ["YouTube","Substitution method, step by step","Short video lessons on substitution.","https://www.youtube.com/results?search_query=solving+systems+of+equations+by+substitution+8th+grade"],
+  ["YouTube","Elimination method, step by step","Short video lessons on elimination.","https://www.youtube.com/results?search_query=solving+systems+of+equations+by+elimination+8th+grade"],
+  ["YouTube","No solution vs. infinitely many solutions","Special cases explained with graphs.","https://www.youtube.com/results?search_query=systems+of+equations+no+solution+infinitely+many+solutions"],
+  ["YouTube","Systems of linear inequalities (Algebra I)","Graphing and shading the overlap.","https://www.youtube.com/results?search_query=graphing+systems+of+linear+inequalities+algebra+1"],
+  ["Desmos","Graph it yourself","Type both equations into the free Desmos graphing calculator and click the crossing point.","https://www.desmos.com/calculator"]
+];
+function videos(){$("#vid-list").innerHTML=VIDS.map(([s,t,d,u])=>`<a class="vid" href="${u}" target="_blank" rel="noopener"><span class="src">${s} ↗</span><b>${t}</b><span>${d}</span></a>`).join("")}
+
+/* ---------- routing ---------- */
+const VIEWS=["start","solution","graphing","substitution","elimination","special","context","algebra","review","videos","teacher"];
+function route(forced){
+  const h=typeof forced==="string"?forced:(location.hash||"").replace("#","");
+  const v=VIEWS.includes(h)?h:"start";
+  VIEWS.forEach(n=>{$("#v-"+n).hidden=n!==v});
+  $$(".tabs a").forEach(a=>{if(a.getAttribute("href")==="#"+v){a.setAttribute("aria-current","page");a.scrollIntoView({block:"nearest",inline:"nearest"})}else a.removeAttribute("aria-current")});
+  stopSpeak();
+  if(h&&VIEWS.includes(h))window.scrollTo(0,0);
+}
+window.addEventListener("hashchange",()=>route());
+/* Handle links ourselves so they work inside Canvas and other embeds */
+document.addEventListener("click",e=>{
+  const a=e.target.closest("a[href]");if(!a)return;
+  const href=a.getAttribute("href");
+  if(href.startsWith("#")){
+    e.preventDefault();
+    const v=href.slice(1);
+    route(v);
+    try{history.replaceState(null,"","#"+v)}catch(err){}
+    return;
+  }
+  if(/^https?:/.test(href)){
+    e.preventDefault();
+    let w=null;try{w=window.open(href,"_blank")}catch(err){}
+    if(w){try{w.opener=null}catch(err){}return}
+    showLinkBox(href,a.querySelector("b")?a.querySelector("b").textContent:a.textContent);
+  }
+});
+function showLinkBox(url,name){
+  let box=$("#linkbox");
+  if(!box){box=document.createElement("div");box.id="linkbox";box.setAttribute("role","dialog");box.setAttribute("aria-label","Open link");
+    box.style.cssText="position:fixed;left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));max-width:560px;margin:0 auto;z-index:50;background:var(--panel);color:var(--ink);border:2px solid var(--ink);border-radius:14px;padding:16px;display:grid;gap:10px;box-shadow:0 10px 30px rgba(0,0,0,.25)";
+    document.body.append(box)}
+  box.innerHTML=`<b>${name.trim()}</b><span style="font-size:.9rem;color:var(--muted)">This page can't open new tabs here. Copy the link and paste it into a new browser tab.</span>
+    <input id="linkbox-url" readonly value="${url}" style="font:inherit;font-size:.85rem;padding:8px;border:1px solid var(--rule);border-radius:8px;background:var(--paper);color:var(--ink);width:100%">
+    <div class="acts"><button type="button" class="pri" id="linkbox-copy">Copy link</button><button type="button" id="linkbox-close">Close</button></div>`;
+  const inp=$("#linkbox-url",box);
+  $("#linkbox-copy",box).onclick=()=>{
+    const done=()=>{$("#linkbox-copy",box).textContent="Copied"};
+    try{navigator.clipboard.writeText(url).then(done,()=>{inp.select();try{document.execCommand("copy");done()}catch(e){}})}catch(e){inp.select();try{document.execCommand("copy");done()}catch(err){}}
+  };
+  $("#linkbox-close",box).onclick=()=>box.remove();
+  inp.focus();inp.select();
+}
+
+statics();videos();Explorer();
+$$(".practice").forEach(Practice);
+$$(".wt").forEach(Walkthrough);
+route();
+})();
+</script>
+</body>
+</html>
